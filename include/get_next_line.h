@@ -22,6 +22,8 @@
 # define READ_EOF 0
 # define READ_ERROR -1
 
+# define BUFFER_SIZE 64
+
 size_t	ft_strlen(char *str);
 char	*ft_substr(char const *str, size_t len);
 char	*ft_strjoin(char *s1, char *s2);

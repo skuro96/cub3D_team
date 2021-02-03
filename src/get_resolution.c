@@ -1,0 +1,31 @@
+#include "get_next_line.h"
+
+int main(int argc, char **argv)
+{
+	// char *line;
+	// int ret;
+
+	// int fd = open("../map/test01.cub", O_RDONLY);
+	// while ((ret = get_next_line(fd, &line)) > 0)
+	// {
+	// 	printf("%s\n", line);
+	// 	free(line);
+	// }
+
+	// if (ret == 0)
+	// {
+	// 	printf("%s\n", line);
+	// 	free(line);
+	// }
+	// return (0);
+
+	char *line;
+
+	if (argc < 2)
+		return (0);
+	
+	int fd = open("../map/test01.cub", O_RDONLY);
+	if (get_next_line(fd, &line) >= 0)
+		printf("%s\n", line);
+	return (0);
+}
