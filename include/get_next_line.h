@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line.h                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: skurosu <skurosu@student.42tokyo.j>        +#+  +:+       +#+        */
+/*   By: hiwata <hiwata@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/06 00:21:06 by skurosu           #+#    #+#             */
-/*   Updated: 2020/11/06 00:22:33 by skurosu          ###   ########.fr       */
+/*   Updated: 2021/02/04 19:24:25 by hiwata           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,10 +24,8 @@
 
 # define BUFFER_SIZE 64
 
-size_t	ft_strlen(char *str);
-char	*ft_substr(char const *str, size_t len);
-char	*ft_strjoin(char *s1, char *s2);
-int		ft_strchr(char *str, char c);
+char	*ft_strndup(char const *str, size_t len);
+int		ft_strchri(char *str, char c);
 int		free_return(char **s1, char **s2, int ret);
 int		save_buf(char **save, char **buf);
 int		cut_endl(char **save, char **line);

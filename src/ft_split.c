@@ -1,70 +1,80 @@
-#include "libft.h"
+#include"libft.h"
 
-int		ary_size(const char *str, char c)
+
+static size_t	count_strs(const char *str, char c)
 {
-	int		i;
+	size_t	i;
+	size_t	cnt;
+	int		flag;
 
 	i = 0;
-	while (*str)
+	cnt = 0;
+	flag = 0;
+	while (str[i] != '\0')
 	{
-		while (*str == c)
-			str++;
-		if (*str == '\0')
-			return (i);
-		while (*str && *str != c)
-			str++;
+		if (str[i] == c)
+			flag = 0;
+		else if (flag == 0)
+		{
+			cnt++;
+			flag = 1;
+		}
 		i++;
 	}
-	return (i);
+	return (cnt);
 }
 
-void	free_all(char **array, int n)
+static void		my_strcpy(char *dest, const char *src, size_t len)
+{
+	size_t i;
+
+	i = 0;
+	while (i < len - 1)
+	{
+		dest[i] = src[i];
+		i++;
+	}
+	dest[i] = '\0';
+}
+
+static char		**all_free(char **dest, int n)
 {
 	int i;
 
 	i = 0;
 	while (i < n)
 	{
-		free(array[i]);
+		free(dest[i]);
 		i++;
 	}
-	free(array);
+	free(dest);
+	return (NULL);
 }
 
-char	**into_array(char **array, char *str, char c)
+char			**ft_split(char const *s, char c)
 {
-	int		len;
-	int		i;
+	size_t	i;
+	size_t	len;
+	size_t	str_nbr;
+	char	**dest;
 
+	if (!s || !(dest = malloc(sizeof(char*) * (count_strs(s, c) + 1))))
+		return (NULL);
 	i = 0;
-	while (array)
+	str_nbr = 0;
+	while (s[i] != '\0' && str_nbr < count_strs(s, c))
 	{
-		while (*str && *str == c)
-			str++;
-		if (!*str)
-			break ;
+		while (s[i] != '\0' && s[i] == c)
+			i++;
 		len = 0;
-		while (str[len] && str[len] != c)
+		while (s[i + len] != '\0' && s[i + len] != c)
 			len++;
-		if (!(array[i] = (ft_substr(str, 0, len))))
-		{
-			free_all(array, i);
-			return (NULL);
-		}
-		i++;
-		str += len;
+		if (!(dest[str_nbr] = malloc(sizeof(char) * (len + 1))))
+			return (all_free(dest, str_nbr));
+		my_strcpy(dest[str_nbr], &s[i], len + 1);
+		str_nbr++;
+		i += len;
 	}
-	array[i] = NULL;
-	return (array);
-}
-
-char	**ft_split(const char *str, char c)
-{
-	char	**array;
-
-	if (!str)
-		return (NULL);
-	if (!(array = malloc(sizeof(char *) * (ary_size(str, c) + 1))))
-		return (NULL);
-	return (into_array(array, (char*)str, c));
+	dest[str_nbr] = (NULL);
+	return (dest);
 }
