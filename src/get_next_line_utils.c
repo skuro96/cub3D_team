@@ -5,42 +5,106 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: hiwata <hiwata@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2020/11/06 00:21:48 by skurosu           #+#    #+#             */
-/*   Updated: 2021/02/04 19:23:39 by hiwata           ###   ########.fr       */
+/*   Created: 2020/11/07 13:04:12 by hiwata            #+#    #+#             */
+/*   Updated: 2021/02/04 21:15:26 by hiwata           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
+#include "libft.h"
 
-char	*ft_strndup(char const *str, size_t len)
+char	*ft_strchr(const char *s, int c)
 {
-	char	*dest;
-	size_t	i;
+	unsigned int	i;
 
-	if (!(dest = malloc(sizeof(char) * (len + 1))))
-		return (NULL);
 	i = 0;
-	while (i < len)
-	{
-		dest[i] = str[i];
+	while (s[i] != '\0')
 		i++;
+	i++;
+	while (i)
+	{
+		if (*s == c)
+		{
+			return ((char *)s);
+		}
+		s++;
+		i--;
 	}
-	dest[i] = '\0';
-	return (dest);
+	return (NULL);
 }
 
-int		ft_strchri(char *str, char c)
+char	*ft_strdup(const char *s1)
 {
-	int i;
+	size_t			len;
+	char			*p;
+	char			*s_cpy;
 
-	if (!str)
-		return (-1);
-	i = 0;
-	while (str[i] != '\0')
+	len = 0;
+	while (s1[len] != '\0')
+		len++;
+	s_cpy = malloc(sizeof(char) * (len + 1));
+	if (!s_cpy)
 	{
-		if (str[i] == c)
-			return (i);
-		i++;
+		free(s_cpy);
+		return (NULL);
 	}
-	return (-1);
+	else
+	{
+		p = s_cpy;
+		while (*s1)
+			*p++ = *s1++;
+		*p = '\0';
+		return (s_cpy);
+	}
+}
+
+size_t	ft_strlcat(char *dst, const char *src, size_t dstsize)
+{
+	size_t			d_len;
+	size_t			s_len;
+	size_t			i;
+
+	d_len = 0;
+	while (dst[d_len])
+		d_len++;
+	s_len = 0;
+	while (src[s_len])
+		s_len++;
+	i = 0;
+	if (d_len < dstsize)
+	{
+		while (dstsize - d_len - 1 > i && src[i])
+		{
+			dst[d_len + i] = src[i];
+			i++;
+		}
+	}
+	dst[i + d_len] = '\0';
+	if (d_len >= dstsize)
+		return (s_len + dstsize);
+	return (s_len + d_len);
+}
+
+void	ft_strlcpy(char *dest, char *src, size_t size)
+{
+	char			*pdst;
+	const char		*psrc;
+	size_t			i;
+
+	pdst = dest;
+	psrc = src;
+	i = size;
+	if (i != 0)
+	{
+		while (--i != 0)
+		{
+			if ((*pdst++ = *psrc++) == '\0')
+				break ;
+		}
+	}
+	if (i == 0)
+	{
+		if (size != 0)
+			*pdst = '\0';
+	}
 }
