@@ -33,30 +33,30 @@ char	*ft_strchr(const char *s, int c)
 	return (NULL);
 }
 
-char	*ft_strdup(const char *s1)
-{
-	size_t			len;
-	char			*p;
-	char			*s_cpy;
+// char	*ft_strdup(const char *s1)
+// {
+// 	size_t			len;
+// 	char			*p;
+// 	char			*s_cpy;
 
-	len = 0;
-	while (s1[len] != '\0')
-		len++;
-	s_cpy = malloc(sizeof(char) * (len + 1));
-	if (!s_cpy)
-	{
-		free(s_cpy);
-		return (NULL);
-	}
-	else
-	{
-		p = s_cpy;
-		while (*s1)
-			*p++ = *s1++;
-		*p = '\0';
-		return (s_cpy);
-	}
-}
+// 	len = 0;
+// 	while (s1[len] != '\0')
+// 		len++;
+// 	s_cpy = malloc(sizeof(char) * (len + 1));
+// 	if (!s_cpy)
+// 	{
+// 		free(s_cpy);
+// 		return (NULL);
+// 	}
+// 	else
+// 	{
+// 		p = s_cpy;
+// 		while (*s1)
+// 			*p++ = *s1++;
+// 		*p = '\0';
+// 		return (s_cpy);
+// 	}
+// }
 
 size_t	ft_strlcat(char *dst, const char *src, size_t dstsize)
 {
