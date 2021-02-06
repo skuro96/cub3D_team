@@ -5,30 +5,29 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: hiwata <hiwata@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2020/11/06 00:21:06 by skurosu           #+#    #+#             */
-/*   Updated: 2021/02/04 19:24:25 by hiwata           ###   ########.fr       */
+/*   Created: 2020/11/08 10:50:17 by hiwata            #+#    #+#             */
+/*   Updated: 2021/02/04 21:14:10 by hiwata           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef GET_NEXT_LINE_H
 # define GET_NEXT_LINE_H
 
-# include <stdio.h>
-# include <unistd.h>
 # include <stdlib.h>
+# include <unistd.h>
 # include <fcntl.h>
 
-# define READ 1
-# define READ_EOF 0
-# define READ_ERROR -1
+# ifndef MAX_FD
+#  define MAX_FD 256
+# endif
+# ifndef BUFFER_SIZE
+#  define BUFFER_SIZE 50
+# endif
 
-# define BUFFER_SIZE 64
-
-char	*ft_strndup(char const *str, size_t len);
-int		ft_strchri(char *str, char c);
-int		free_return(char **s1, char **s2, int ret);
-int		save_buf(char **save, char **buf);
-int		cut_endl(char **save, char **line);
+char	*ft_strjoin(char const *s1, char const *s2);
+void	ft_strlcpy(char *dest, char *src, size_t size);
+char	*ft_strdup(const char *s1);
+char	*ft_strchr(const char *s, int c);
+size_t	ft_strlcat(char *dst, const char *src, size_t dstsize);
 int		get_next_line(int fd, char **line);
-
 #endif

@@ -5,87 +5,111 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: hiwata <hiwata@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2020/11/06 00:20:53 by skurosu           #+#    #+#             */
-/*   Updated: 2021/02/04 19:23:16 by hiwata           ###   ########.fr       */
+/*   Created: 2020/10/29 16:08:21 by hiwata            #+#    #+#             */
+/*   Updated: 2021/02/04 21:15:08 by hiwata           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 #include "libft.h"
 
-int		free_return(char **s1, char **s2, int ret)
+int					read_fd(char **str, int fd)
 {
-	if (s1 && *s1)
-	{
-		free(*s1);
-		*s1 = NULL;
-	}
-	if (s2 && *s2)
-	{
-		free(*s2);
-		*s2 = NULL;
-	}
-	return (ret);
-}
+	char			*buf;
+	char			*tmp;
+	ssize_t			r_size;
 
-int		save_buf(char **save, char **buf)
-{
-	char *tmp;
-
-	if (*save != NULL)
+	r_size = 1;
+	*str = ft_strdup("");
+	while (r_size && !ft_strchr(*str, '\n'))
 	{
-		tmp = *save;
-		if (!(*save = ft_strjoin(*save, *buf)))
-			return (free_return(buf, &tmp, READ_ERROR));
+		if (!(buf = malloc(BUFFER_SIZE + 1)))
+			return (-1);
+		if ((r_size = read(fd, buf, BUFFER_SIZE)) < 0)
+			return (-1);
+		buf[r_size] = '\0';
+		tmp = ft_strjoin(*str, buf);
+		free(*str);
+		free(buf);
+		*str = ft_strdup(tmp);
 		free(tmp);
+		if (!str)
+			return (-1);
 	}
-	else if (!(*save = ft_strndup(*buf, ft_strlen(*buf))))
-		return (free_return(buf, NULL, READ_ERROR));
-	return (0);
+	return (r_size);
 }
 
-int		cut_endl(char **save, char **line)
+ssize_t				str_memo(char **str, char **memo, int fd, int *flag)
 {
-	int		endl;
-	char	*tmp;
+	char			*p_newl;
+	char			*tmp;
+	ssize_t			len;
 
-	endl = ft_strchri(*save, '\n');
-	if (endl < 0)
+	if (memo[fd])
 	{
-		if (!(*line = ft_strndup(*save, ft_strlen(*save))))
-			return (free_return(save, NULL, READ_ERROR));
-		return (free_return(save, NULL, READ_EOF));
+		tmp = ft_strjoin(memo[fd], *str);
+		free(memo[fd]);
+		memo[fd] = NULL;
+		free(*str);
+		*str = ft_strdup(tmp);
+		free(tmp);
+		if (!str)
+			return (-1);
 	}
-	if (!(*line = ft_strndup(*save, endl)))
-		return (free_return(save, NULL, READ_ERROR));
-	tmp = *save;
-	if (!(*save = ft_strndup(*save + endl + 1, ft_strlen(*save + endl + 1))))
-		return (free_return(&tmp, line, READ_ERROR));
-	return (free_return(&tmp, NULL, READ));
+	if ((p_newl = ft_strchr(*str, '\n')))
+		*flag = 1;
+	if (!p_newl)
+		p_newl = ft_strchr(*str, '\0');
+	len = p_newl ? p_newl - *str : 0;
+	if (!*flag)
+		return (len);
+	if (!(memo[fd] = ft_strdup(&str[0][len + 1])))
+		return (-1);
+	return (len);
 }
 
-int		get_next_line(int fd, char **line)
+int					free_any_thing(char **str, char **memo, int fd, int flag)
 {
-	static char	*save;
-	char		*buf;
-	int			ret;
+	char			**f_param;
 
-	if (!line || fd < 0 || BUFFER_SIZE <= 0)
-		return (READ_ERROR);
-	if (ft_strchri(save, '\n') != -1)
-		return (cut_endl(&save, line));
-	if (!(buf = malloc(sizeof(char) * (BUFFER_SIZE + 1))))
-		return (free_return(&save, NULL, READ_ERROR));
-	while ((ret = read(fd, buf, BUFFER_SIZE)) > 0)
+	f_param = str;
+	if (str && flag != 0)
 	{
-		buf[ret] = '\0';
-		if (save_buf(&save, &buf) == READ_ERROR)
-			return (READ_ERROR);
-		if (ft_strchri(save, '\n') != -1)
-			break ;
+		if (*f_param)
+			free(*f_param);
+		else
+			*f_param = 0;
+		free(str);
+		return (-1);
 	}
-	free(buf);
-	if (ret < 0)
-		return (free_return(&save, NULL, READ_ERROR));
-	return (cut_endl(&save, line));
+	if (flag > 0)
+		return (0);
+	free(memo[fd]);
+	return (-1);
+}
+
+int					get_next_line(int fd, char **line)
+{
+	char			**str;
+	static char		*memo[MAX_FD] = {0};
+	int				flag[1];
+	ssize_t			size;
+
+	if (fd < 0 || fd > MAX_FD || BUFFER_SIZE <= 0)
+		return (-1);
+	if (!(str = (char **)malloc(sizeof(char *))))
+		return (-1);
+	*flag = 0;
+	if (read_fd(str, fd) < 0)
+		return (free_any_thing(str, memo, fd, -1));
+	if ((size = str_memo(str, memo, fd, flag)) < 0)
+		return (free_any_thing(str, memo, fd, -1));
+	*line = NULL;
+	if (!(*line = malloc(size + 1)))
+		return (free_any_thing(str, memo, fd, -1));
+	ft_strlcpy(*line, *str, size + 1);
+	free_any_thing(str, memo, fd, 1);
+	if (!*flag)
+		return (0);
+	return (1);
 }
