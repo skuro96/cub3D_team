@@ -155,7 +155,7 @@ bool set_map(char *line, t_mapinfo *mi)
 	return (freei_return(old, mi->map_row - 1, true));
 }
 
-bool check_map(char **map, int n, int *max_col);
+bool check_map(char **map, int n, int *max_col)
 {
 	int i;
 	int j;
@@ -185,15 +185,47 @@ bool check_map(char **map, int n, int *max_col);
 	return (true);
 }
 
-bool check_info(t_mapinfo mi)
+bool protect_map(char **map, t_mapinfo *mi)
 {
-	if (mi.win_height <= 0 || mi.win_width <= 0)
+	int i;
+	int j;
+	char **pro_map;
+
+	i = 0;
+	if (!(pro_map = malloc(sizeof(char *) * (mi->map_row + 2 + 1))))
 		return (false);
-	if (!mi.north_texture || !mi.south_texture || !mi.west_texture || !mi.east_texture || !mi.sprite_texture)
+	while (i < mi->map_row + 2)
+	{
+		j = 0;
+		if (!(pro_map[i] = malloc(mi->map_col + 2 + 1)))
+			return (false); // freeもしてね
+		while(j < mi->map_col + 2)
+		{
+			if(i == 0 || i == mi->map_row + 1|| j == 0 || j == mi->map_col + 1)
+				pro_map[i][j] = '#';
+			else if (j > ft_strlen(map[i - 1]))
+				pro_map[i][j] = ' ';
+			else
+				pro_map[i][j] = map[i - 1][j - 1];
+			j++;
+		}
+		pro_map[i][j] = '\0';
+		i++;
+	}
+	pro_map[i] = NULL;
+	mi->map_prtd = pro_map;
+	return (true);
+}
+
+bool check_info(t_mapinfo *mi)
+{
+	if (mi->win_height <= 0 || mi->win_width <= 0)
 		return (false);
-	if (mi.f_color < 0 || mi.c_color < 0)
+	if (!mi->north_texture || !mi->south_texture || !mi->west_texture || !mi->east_texture || !mi->sprite_texture)
 		return (false);
-	if (!check_map(mi.map, mi.map_row, &(mi.map_col)))
+	if (mi->f_color < 0 || mi->c_color < 0)
+		return (false);
+	if (!check_map(mi->map, mi->map_row, &(mi->map_col)))
 		return (false);
 	return (true);
 }
@@ -238,7 +270,7 @@ bool set_info(char *fname, t_mapinfo *mi)
 		free(line);
 	}
 	close(fd);
-	return (check_info(*mi));
+	return (check_info(mi));
 }
 
 int main(int argc, char **argv)
@@ -254,6 +286,17 @@ int main(int argc, char **argv)
 	map_init(&mi);
 	if (!set_info(argv[1], &mi))
 		return (0);
+
+	printf("map_row = %d\n", mi.map_row);
+	printf("map_col = %d\n", mi.map_col);
+
+	if (protect_map(mi.map, &mi))
+	{
+		for (int i = 0; i < mi.map_row + 2; i++)
+		{
+			printf("%s\n", mi.map_prtd[i]);
+		}
+	}
 	printf("%s\n%s\n%s\n%s\n%s\n", mi.north_texture, mi.south_texture, mi.east_texture, mi.west_texture, mi.sprite_texture);
 	printf("%d\n", mi.map_col);
 	for (int i = 0; i < mi.map_row; i++)

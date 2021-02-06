@@ -19,6 +19,8 @@ typedef struct	s_mapinfo
     int map_col;
 	int f_color;
 	int c_color;
+
+    char **map_prtd;
 }				t_mapinfo;
 
 bool set_map(char *line, t_mapinfo *mi);
