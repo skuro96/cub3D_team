@@ -78,6 +78,47 @@ bool set_path(char *line, t_mapinfo *mi)
 // 		return (true);
 // }
 
+bool check_info(t_mapinfo mi)
+{
+	if (mi.height <= 0 || mi.width <= 0)
+		return (false);
+	if (!mi->north_texture || !mi->south_texture || !mi->west_texture || !mi->east_texture)
+		return (false);
+	return (true);
+}
+
+bool set_info(char *fname, t_mapinfo *mi)
+{
+	int fd;
+	char *line;
+	char **buf;
+
+	fd = open(fname, O_RDONLY);
+	while (get_next_line(fd, &line) > 0)
+	{
+		if (line[0] == '\0')
+		{
+			free(line);
+			continue ;
+		}
+		if (set_resolution(line, mi))
+		{
+			free(line);
+			continue ;
+		}
+		if (set_path(line))
+		{
+			free(line);
+			continue ;
+		}
+		free(line)
+		if (check_info(*mi))
+			break ;
+		printf("invalid file");
+		return (false);
+	}
+}
+
 int main(int argc, char **argv)
 {
 	char *line;
@@ -89,25 +130,27 @@ int main(int argc, char **argv)
 	int fd = open(argv[1], O_RDONLY);
 
 	map_init(&mi);
-
-	if (get_next_line(fd, &line) < 0)
+	if (!set_info(argv[1]))
 		return (0);
-	if (!set_resolution(line, &mi))
-	{
-		free(line);
-		return (0);
-	}
-	printf("%d, %d\n", mi.height, mi.width);
-	free(line);
 
-	int cnt = 0;
-	while (get_next_line(fd, &line) > 0 && cnt < 4)
-	{
-		if (!set_path(line, &mi))
-			break ;
-		cnt++;
-		free(line);
-	}
+	// if (get_next_line(fd, &line) < 0)
+	// 	return (0);
+	// if (!set_resolution(line, &mi))
+	// {
+	// 	free(line);
+	// 	return (0);
+	// }
+	// printf("%d, %d\n", mi.height, mi.width);
+	// free(line);
+
+	// int cnt = 0;
+	// while (get_next_line(fd, &line) > 0 && cnt < 4)
+	// {
+	// 	if (!set_path(line, &mi))
+	// 		break ;
+	// 	cnt++;
+	// 	free(line);
+	// }
 
 	printf("%s\n%s\n%s\n%s\n", mi.north_texture, mi.south_texture, mi.east_texture, mi.west_texture);
 	free(mi.north_texture);
