@@ -10,8 +10,11 @@ typedef struct	s_mapinfo
 	char *south_texture;
 	char *west_texture;
 	char *east_texture;
+	char *sprite_texture;
 	char **map;
 	int map_row;
+	int f_color;
+	int c_color;
 }				t_mapinfo;
 
 static bool freeturn_buf(char **buf, bool ret)
@@ -36,8 +39,11 @@ static void map_init(t_mapinfo *mi)
 	mi->south_texture = NULL;
 	mi->west_texture = NULL;
 	mi->east_texture = NULL;
+	mi->sprite_texture = NULL;
 	mi->map = NULL;
 	mi->map_row = 0;
+	mi->f_color = -1;
+	mi->c_color = -1;
 }
 
 bool set_resolution(char *line, t_mapinfo *mi)
@@ -69,6 +75,50 @@ bool set_path(char *line, t_mapinfo *mi)
 		return (freeturn_buf(buf, true));
 	if (ft_strcmp(buf[0], "EA") == 0 && !mi->east_texture && (mi->east_texture = ft_strdup(buf[1])))
 		return (freeturn_buf(buf, true));
+	if (ft_strcmp(buf[0], "S") == 0 && !mi->sprite_texture && (mi->sprite_texture = ft_strdup(buf[1])))
+		return (freeturn_buf(buf, true));
+	return (freeturn_buf(buf, false));
+}
+
+bool calc_color(char *str, int *color)
+{
+	int r;
+	int g;
+	int b;
+	char **val;
+
+	if (!(val = ft_split(str, ',')))
+		return (false);
+	if (!val[0] || !val[1] || !val[2] || val[3])
+		return (freeturn_buf(val, false));
+	r = ft_atoi(val[0]);
+	g = ft_atoi(val[1]);
+	b = ft_atoi(val[2]);
+	if (!(0 <= r && r < 256 && 0 <= g && g < 256 && 0 <= b && b < 256))
+		return (freeturn_buf(val, false));
+	*color = r * 256 * 256 + g * 256 + b;
+	return (freeturn_buf(val, true));
+}
+
+bool set_rgb(char *line, t_mapinfo *mi)
+{
+	char **buf;
+	int color;
+
+	if (!(buf = ft_split(line, ' ')))
+		return (false);
+	if (!buf[0] || !buf[1] || buf[2])
+		return (freeturn_buf(buf, false));
+	if (ft_strcmp(buf[0], "F") == 0 && mi->f_color == -1 && calc_color(buf[1], &color))
+	{
+		mi->f_color = color;
+		return (freeturn_buf(buf, true));
+	}
+	if (ft_strcmp(buf[0], "C") == 0 && mi->c_color == -1 && calc_color(buf[1], &color))
+	{
+		mi->c_color = color;
+		return (freeturn_buf(buf, true));
+	}
 	return (freeturn_buf(buf, false));
 }
 
@@ -92,11 +142,8 @@ bool check_info(t_mapinfo mi)
 bool is_index(char *str)
 {
 	return (ft_strcmp(str, "R") == 0 || ft_strcmp(str, "NO") == 0 || ft_strcmp(str, "SO") == 0 \
-			|| ft_strcmp(str, "WE") == 0 || ft_strcmp(str, "EA") == 0);
-
-	// return (ft_strcmp(str, "R") == 0 || ft_strcmp(str, "NO") == 0 || ft_strcmp(str, "SO") == 0 \
-	// 		|| ft_strcmp(str, "WE") == 0 || ft_strcmp(str, "EA") == 0 || ft_strcmp(str, "S") == 0 \
-	// 		|| ft_strcmp(str, "F") == 0 || ft_strcmp(str, "C") == 0);
+			|| ft_strcmp(str, "WE") == 0 || ft_strcmp(str, "EA") == 0 || ft_strcmp(str, "S") == 0 \
+			|| ft_strcmp(str, "F") == 0 || ft_strcmp(str, "C") == 0);
 }
 
 int max(int a, int b)
@@ -159,7 +206,7 @@ bool set_info(char *fname, t_mapinfo *mi)
 			;
 		else if (is_index(buf[0]))
 		{
-			if (!(set_resolution(line, mi) || set_path(line, mi)))
+			if (!(set_resolution(line, mi) || set_path(line, mi) || set_rgb(line, mi)))
 			{
 				close(fd);
 				free(line);
@@ -196,32 +243,14 @@ int main(int argc, char **argv)
 	map_init(&mi);
 	if (!set_info(argv[1], &mi))
 		return (0);
-
-	// if (get_next_line(fd, &line) < 0)
-	// 	return (0);
-	// if (!set_resolution(line, &mi))
-	// {
-	// 	free(line);
-	// 	return (0);
-	// }
-	// printf("%d, %d\n", mi.win_height, mi.win_width);
-	// free(line);
-
-	// int cnt = 0;
-	// while (get_next_line(fd, &line) > 0 && cnt < 4)
-	// {
-	// 	if (!set_path(line, &mi))
-	// 		break ;
-	// 	cnt++;
-	// 	free(line);
-	// }
-
-	printf("%s\n%s\n%s\n%s\n", mi.north_texture, mi.south_texture, mi.east_texture, mi.west_texture);
+	printf("%s\n%s\n%s\n%s\n%s\n", mi.north_texture, mi.south_texture, mi.east_texture, mi.west_texture, mi.sprite_texture);
 	for (int i = 0; i < mi.map_row; i++)
 	{
 		printf("%s\n", mi.map[i]);
 		free(mi.map[i]);
 	}
+
+	printf("F:%d, C:%d\n", mi.f_color, mi.c_color);
 	free(mi.map);
 
 	free(mi.north_texture);
