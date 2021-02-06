@@ -1,21 +1,4 @@
-#include "get_next_line.h"
-#include "libft.h"
-#include <stdbool.h>
-
-typedef struct	s_mapinfo
-{
-	int win_height;
-	int	win_width;
-	char *north_texture;
-	char *south_texture;
-	char *west_texture;
-	char *east_texture;
-	char *sprite_texture;
-	char **map;
-	int map_row;
-	int f_color;
-	int c_color;
-}				t_mapinfo;
+#include "cub3d.h"
 
 static bool freeturn_buf(char **buf, bool ret)
 {
@@ -42,6 +25,7 @@ static void map_init(t_mapinfo *mi)
 	mi->sprite_texture = NULL;
 	mi->map = NULL;
 	mi->map_row = 0;
+	mi->map_col = 0;
 	mi->f_color = -1;
 	mi->c_color = -1;
 }
@@ -122,22 +106,6 @@ bool set_rgb(char *line, t_mapinfo *mi)
 	return (freeturn_buf(buf, false));
 }
 
-// bool checkPath(t_mapinfo mi)
-// {
-// 	if (!mi->north_texture || !mi->south_texture || !mi->west_texture || !mi->east_texture)
-// 		return (false);
-// 	else
-// 		return (true);
-// }
-
-bool check_info(t_mapinfo mi)
-{
-	if (mi.win_height <= 0 || mi.win_width <= 0)
-		return (false);
-	if (!mi.north_texture || !mi.south_texture || !mi.west_texture || !mi.east_texture)
-		return (false);
-	return (true);
-}
 
 bool is_index(char *str)
 {
@@ -187,6 +155,49 @@ bool set_map(char *line, t_mapinfo *mi)
 	return (freei_return(old, mi->map_row - 1, true));
 }
 
+bool check_map(char **map, int n, int *max_col);
+{
+	int i;
+	int j;
+	bool flag;
+	int mcol;
+
+	flag = false;
+	i = 0;
+	while (i < n)
+	{
+		j = 0;
+		while (map[i][j] != '\0')
+		{
+			if (!(map[i][j] == ' ' || map[i][j] == '0' || map[i][j] == '1' || map[i][j] == '2'\
+				|| map[i][j] == 'N' || map[i][j] == 'S' || map[i][j] == 'W' || map[i][j] == 'E'))
+				return (false);
+			if (flag && (map[i][j] == 'N' || map[i][j] == 'S' || map[i][j] == 'W' || map[i][j] == 'E'))
+				return (false);
+			if (map[i][j] == 'N' || map[i][j] == 'S' || map[i][j] == 'W' || map[i][j] == 'E')
+				flag = true;
+			j++;
+		}
+		mcol = mcol < j ? j : mcol;
+		i++;
+	}
+	*max_col = mcol;
+	return (true);
+}
+
+bool check_info(t_mapinfo mi)
+{
+	if (mi.win_height <= 0 || mi.win_width <= 0)
+		return (false);
+	if (!mi.north_texture || !mi.south_texture || !mi.west_texture || !mi.east_texture || !mi.sprite_texture)
+		return (false);
+	if (mi.f_color < 0 || mi.c_color < 0)
+		return (false);
+	if (!check_map(mi.map, mi.map_row, &(mi.map_col)))
+		return (false);
+	return (true);
+}
+
 bool set_info(char *fname, t_mapinfo *mi)
 {
 	int fd;
@@ -227,7 +238,7 @@ bool set_info(char *fname, t_mapinfo *mi)
 		free(line);
 	}
 	close(fd);
-	return (true);
+	return (check_info(*mi));
 }
 
 int main(int argc, char **argv)
@@ -244,6 +255,7 @@ int main(int argc, char **argv)
 	if (!set_info(argv[1], &mi))
 		return (0);
 	printf("%s\n%s\n%s\n%s\n%s\n", mi.north_texture, mi.south_texture, mi.east_texture, mi.west_texture, mi.sprite_texture);
+	printf("%d\n", mi.map_col);
 	for (int i = 0; i < mi.map_row; i++)
 	{
 		printf("%s\n", mi.map[i]);
