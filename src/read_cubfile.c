@@ -155,7 +155,7 @@ bool set_map(char *line, t_mapinfo *mi)
 	return (freei_return(old, mi->map_row - 1, true));
 }
 
-bool check_map(char **map, int n, int *max_col)
+bool check_map(t_mapinfo *mi, int n, int *max_col)
 {
 	int i;
 	int j;
@@ -164,18 +164,23 @@ bool check_map(char **map, int n, int *max_col)
 
 	flag = false;
 	i = 0;
+	mcol = 0;
 	while (i < n)
 	{
 		j = 0;
-		while (map[i][j] != '\0')
+		while (mi->map[i][j] != '\0')
 		{
-			if (!(map[i][j] == ' ' || map[i][j] == '0' || map[i][j] == '1' || map[i][j] == '2'\
-				|| map[i][j] == 'N' || map[i][j] == 'S' || map[i][j] == 'W' || map[i][j] == 'E'))
+			if (!(mi->map[i][j] == ' ' || mi->map[i][j] == '0' || mi->map[i][j] == '1' || mi->map[i][j] == '2'\
+				|| mi->map[i][j] == 'N' || mi->map[i][j] == 'S' || mi->map[i][j] == 'W' || mi->map[i][j] == 'E'))
 				return (false);
-			if (flag && (map[i][j] == 'N' || map[i][j] == 'S' || map[i][j] == 'W' || map[i][j] == 'E'))
+			if (flag && (mi->map[i][j] == 'N' || mi->map[i][j] == 'S' || mi->map[i][j] == 'W' || mi->map[i][j] == 'E'))
 				return (false);
-			if (map[i][j] == 'N' || map[i][j] == 'S' || map[i][j] == 'W' || map[i][j] == 'E')
+			if (mi->map[i][j] == 'N' || mi->map[i][j] == 'S' || mi->map[i][j] == 'W' || mi->map[i][j] == 'E')
+			{
+				mi->spawn_vertical = i;
+				mi->spawn_horizontal = j;
 				flag = true;
+			}
 			j++;
 		}
 		mcol = mcol < j ? j : mcol;
@@ -190,14 +195,19 @@ bool protect_map(char **map, t_mapinfo *mi)
 	int i;
 	int j;
 	char **pro_map;
+	int **went_map;
 
 	i = 0;
 	if (!(pro_map = malloc(sizeof(char *) * (mi->map_row + 2 + 1))))
+		return (false);
+	if (!(went_map = malloc(sizeof(int *) * (mi->map_row + 2 + 1))))
 		return (false);
 	while (i < mi->map_row + 2)
 	{
 		j = 0;
 		if (!(pro_map[i] = malloc(mi->map_col + 2 + 1)))
+			return (false);
+		if(!(went_map[i] = malloc(sizeof(int) * (mi->map_col + 2 + 1))))
 			return (false); // freeもしてね
 		while(j < mi->map_col + 2)
 		{
@@ -207,14 +217,48 @@ bool protect_map(char **map, t_mapinfo *mi)
 				pro_map[i][j] = ' ';
 			else
 				pro_map[i][j] = map[i - 1][j - 1];
+			went_map[i][j] = 0;
 			j++;
 		}
 		pro_map[i][j] = '\0';
+		went_map[i][j] = '\0';
 		i++;
 	}
 	pro_map[i] = NULL;
+	went_map[i] = NULL;
 	mi->map_prtd = pro_map;
+	mi->went = went_map;
 	return (true);
+}
+
+bool search_map(t_mapinfo *mi, int vertical, int horizontal)
+{
+	bool flag; 
+	//すでに来ているか壁ならreturn true
+	 if (mi->map_prtd[vertical][horizontal] == '1' || mi->went[vertical][horizontal] == 1)
+		return (true);
+	//今の座標を行ったリストに入れる
+	mi->went[vertical][horizontal] = 1;
+
+	printf("%c\n",mi->map_prtd[vertical][horizontal]);
+
+	//今の座標からみて上下左右が'＃'or空白がないか確認
+	//右
+	if (mi->map_prtd[vertical][horizontal + 1] == '#' || mi->map_prtd[vertical][horizontal + 1] == ' ')
+		return (false);
+	//左
+	if (mi->map_prtd[vertical][horizontal - 1] == '#' || mi->map_prtd[vertical][horizontal - 1] == ' ')
+		return (false);
+	//下
+	if (mi->map_prtd[vertical + 1][horizontal] == '#' || mi->map_prtd[vertical + 1][horizontal] == ' ')
+		return (false);
+	//上
+	if (mi->map_prtd[vertical - 1][horizontal] == '#' || mi->map_prtd[vertical - 1][horizontal] == ' ')
+		return (false);
+
+	//とりあえず全部移動する
+	flag = search_map(mi, vertical, horizontal + 1) * search_map(mi, vertical, horizontal - 1) * search_map(mi, vertical + 1, horizontal) * search_map(mi, vertical - 1, horizontal);
+	return (flag);
 }
 
 bool check_info(t_mapinfo *mi)
@@ -225,7 +269,7 @@ bool check_info(t_mapinfo *mi)
 		return (false);
 	if (mi->f_color < 0 || mi->c_color < 0)
 		return (false);
-	if (!check_map(mi->map, mi->map_row, &(mi->map_col)))
+	if (!check_map(mi, mi->map_row, &(mi->map_col)))
 		return (false);
 	return (true);
 }
@@ -297,6 +341,8 @@ int main(int argc, char **argv)
 			printf("%s\n", mi.map_prtd[i]);
 		}
 	}
+	
+	printf("check = %d\n",search_map(&mi, mi.spawn_vertical + 1, mi.spawn_horizontal + 1));
 	printf("%s\n%s\n%s\n%s\n%s\n", mi.north_texture, mi.south_texture, mi.east_texture, mi.west_texture, mi.sprite_texture);
 	printf("%d\n", mi.map_col);
 	for (int i = 0; i < mi.map_row; i++)

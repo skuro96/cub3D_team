@@ -20,6 +20,9 @@ typedef struct	s_mapinfo
 	int f_color;
 	int c_color;
 
+	int spawn_vertical;
+	int spawn_horizontal;
+	int **went;
     char **map_prtd;
 }				t_mapinfo;
 
