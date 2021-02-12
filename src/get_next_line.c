@@ -21,7 +21,7 @@ int					read_fd(char **str, int fd)
 
 	r_size = 1;
 	*str = ft_strdup("");
-	while (r_size && !ft_strchr(*str, '\n'))
+	while (r_size && !ft_strrchr(*str, '\n'))
 	{
 		if (!(buf = malloc(BUFFER_SIZE + 1)))
 			return (-1);
@@ -56,10 +56,10 @@ ssize_t				str_memo(char **str, char **memo, int fd, int *flag)
 		if (!str)
 			return (-1);
 	}
-	if ((p_newl = ft_strchr(*str, '\n')))
+	if ((p_newl = ft_strrchr(*str, '\n')))
 		*flag = 1;
 	if (!p_newl)
-		p_newl = ft_strchr(*str, '\0');
+		p_newl = ft_strrchr(*str, '\0');
 	len = p_newl ? p_newl - *str : 0;
 	if (!*flag)
 		return (len);
