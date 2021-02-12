@@ -28,6 +28,9 @@ static void map_init(t_mapinfo *mi)
 	mi->map_col = 0;
 	mi->f_color = -1;
 	mi->c_color = -1;
+
+	mi->spawn_x = -1;
+	mi->spawn_y = -1;
 }
 
 bool set_resolution(char *line, t_mapinfo *mi)
@@ -114,11 +117,6 @@ bool is_index(char *str)
 			|| ft_strcmp(str, "F") == 0 || ft_strcmp(str, "C") == 0);
 }
 
-int max(int a, int b)
-{
-	return (a > b ? a : b);
-}
-
 bool freei_return(char **ptr, int n, bool ret)
 {
 	int i;
@@ -151,42 +149,35 @@ bool set_map(char *line, t_mapinfo *mi)
 	if (!(new[i] = ft_strdup(line)))
 		return (freei_return(new, i, false));
 	mi->map = new;
+	mi->map_col = mi->map_col < ft_strlen(new[i]) ? ft_strlen(new[i]) : mi->map_col;
 	mi->map_row++;
 	return (freei_return(old, mi->map_row - 1, true));
 }
 
-bool check_map(t_mapinfo *mi, int n, int *max_col)
+bool check_map(t_mapinfo *mi, int n)
 {
 	int i;
 	int j;
-	bool flag;
-	int mcol;
 
-	flag = false;
 	i = 0;
-	mcol = 0;
 	while (i < n)
 	{
 		j = 0;
 		while (mi->map[i][j] != '\0')
 		{
-			if (!(mi->map[i][j] == ' ' || mi->map[i][j] == '0' || mi->map[i][j] == '1' || mi->map[i][j] == '2'\
-				|| mi->map[i][j] == 'N' || mi->map[i][j] == 'S' || mi->map[i][j] == 'W' || mi->map[i][j] == 'E'))
+			if (!ft_strchr(" 012NSWE", mi->map[i][j]))
 				return (false);
-			if (flag && (mi->map[i][j] == 'N' || mi->map[i][j] == 'S' || mi->map[i][j] == 'W' || mi->map[i][j] == 'E'))
+			if (mi->spawn_x != -1 && mi->spawn_y != -1 && ft_strchr("NSWE", mi->map[i][j]))
 				return (false);
-			if (mi->map[i][j] == 'N' || mi->map[i][j] == 'S' || mi->map[i][j] == 'W' || mi->map[i][j] == 'E')
+			if (ft_strchr("NSWE", mi->map[i][j]))
 			{
-				mi->spawn_vertical = i;
-				mi->spawn_horizontal = j;
-				flag = true;
+				mi->spawn_y = i;
+				mi->spawn_x = j;
 			}
 			j++;
 		}
-		mcol = mcol < j ? j : mcol;
 		i++;
 	}
-	*max_col = mcol;
 	return (true);
 }
 
@@ -195,70 +186,48 @@ bool protect_map(char **map, t_mapinfo *mi)
 	int i;
 	int j;
 	char **pro_map;
-	int **went_map;
 
 	i = 0;
 	if (!(pro_map = malloc(sizeof(char *) * (mi->map_row + 2 + 1))))
-		return (false);
-	if (!(went_map = malloc(sizeof(int *) * (mi->map_row + 2 + 1))))
 		return (false);
 	while (i < mi->map_row + 2)
 	{
 		j = 0;
 		if (!(pro_map[i] = malloc(mi->map_col + 2 + 1)))
-			return (false);
-		if(!(went_map[i] = malloc(sizeof(int) * (mi->map_col + 2 + 1))))
-			return (false); // freeもしてね
+			return (false); // free
 		while(j < mi->map_col + 2)
 		{
 			if(i == 0 || i == mi->map_row + 1|| j == 0 || j == mi->map_col + 1)
 				pro_map[i][j] = '#';
-			else if (j > ft_strlen(map[i - 1]))
-				pro_map[i][j] = ' ';
 			else
-				pro_map[i][j] = map[i - 1][j - 1];
-			went_map[i][j] = 0;
+				pro_map[i][j] = (j > ft_strlen(map[i - 1])) ? ' ' : map[i - 1][j - 1];
 			j++;
 		}
 		pro_map[i][j] = '\0';
-		went_map[i][j] = '\0';
 		i++;
 	}
 	pro_map[i] = NULL;
-	went_map[i] = NULL;
 	mi->map_prtd = pro_map;
-	mi->went = went_map;
 	return (true);
 }
 
-bool search_map(t_mapinfo *mi, int vertical, int horizontal)
+bool search_map(t_mapinfo *mi, int x, int y)
 {
-	bool flag; 
-	//すでに来ているか壁ならreturn true
-	 if (mi->map_prtd[vertical][horizontal] == '1' || mi->went[vertical][horizontal] == 1)
+	char **map;
+
+	map = mi->map_prtd;
+	if (map[y][x] == '1' || map[y][x] == '*')
 		return (true);
-	//今の座標を行ったリストに入れる
-	mi->went[vertical][horizontal] = 1;
-
-	printf("%c\n",mi->map_prtd[vertical][horizontal]);
-
-	//今の座標からみて上下左右が'＃'or空白がないか確認
-	//右
-	if (mi->map_prtd[vertical][horizontal + 1] == '#' || mi->map_prtd[vertical][horizontal + 1] == ' ')
+	map[y][x] = '*';
+	if (map[y][x + 1] == '#' || map[y][x + 1] == ' ')
 		return (false);
-	//左
-	if (mi->map_prtd[vertical][horizontal - 1] == '#' || mi->map_prtd[vertical][horizontal - 1] == ' ')
+	if (map[y][x - 1] == '#' || map[y][x - 1] == ' ')
 		return (false);
-	//下
-	if (mi->map_prtd[vertical + 1][horizontal] == '#' || mi->map_prtd[vertical + 1][horizontal] == ' ')
+	if (map[y + 1][x] == '#' || map[y + 1][x] == ' ')
 		return (false);
-	//上
-	if (mi->map_prtd[vertical - 1][horizontal] == '#' || mi->map_prtd[vertical - 1][horizontal] == ' ')
+	if (map[y - 1][x] == '#' || map[y - 1][x] == ' ')
 		return (false);
-
-	//とりあえず全部移動する
-	flag = search_map(mi, vertical, horizontal + 1) * search_map(mi, vertical, horizontal - 1) * search_map(mi, vertical + 1, horizontal) * search_map(mi, vertical - 1, horizontal);
-	return (flag);
+	return (search_map(mi, x, y + 1) && search_map(mi, x, y - 1) && search_map(mi, x + 1, y) && search_map(mi, x - 1, y));
 }
 
 bool check_info(t_mapinfo *mi)
@@ -269,7 +238,7 @@ bool check_info(t_mapinfo *mi)
 		return (false);
 	if (mi->f_color < 0 || mi->c_color < 0)
 		return (false);
-	if (!check_map(mi, mi->map_row, &(mi->map_col)))
+	if (!check_map(mi, mi->map_row))
 		return (false);
 	return (true);
 }
@@ -303,7 +272,7 @@ bool set_info(char *fname, t_mapinfo *mi)
 		else
 		{
 			map_read = true;
-			set_map(line, mi);
+			set_map(line, mi); // 失敗の場合のfree
 		}
 		free(line);
 		freeturn_buf(buf, true);
@@ -342,7 +311,7 @@ int main(int argc, char **argv)
 		}
 	}
 	
-	printf("check = %d\n",search_map(&mi, mi.spawn_vertical + 1, mi.spawn_horizontal + 1));
+	printf("check = %d\n",search_map(&mi, mi.spawn_x + 1, mi.spawn_y + 1));
 	printf("%s\n%s\n%s\n%s\n%s\n", mi.north_texture, mi.south_texture, mi.east_texture, mi.west_texture, mi.sprite_texture);
 	printf("%d\n", mi.map_col);
 	for (int i = 0; i < mi.map_row; i++)
@@ -358,6 +327,13 @@ int main(int argc, char **argv)
 	free(mi.south_texture);
 	free(mi.east_texture);
 	free(mi.west_texture);
+
+	for (int i = 0; i < mi.map_row + 2; i++)
+	{
+		// printf("%s\n", mi.map_prtd[i]);
+		free(mi.map_prtd[i]);
+	}
+	free(mi.map_prtd);
 
 	// system("leaks a.out");
 	return (0);
