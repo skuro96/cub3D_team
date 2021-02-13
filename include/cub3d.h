@@ -1,9 +1,12 @@
 #ifndef CUB3D_H
 # define CUB3D_H
 
+#include "../minilibx/mlx.h"
 #include "libft.h"
 #include "get_next_line.h"
 #include <stdbool.h>
+
+#define TILE_SIZE 10
 
 typedef struct	s_mapinfo
 {
@@ -20,12 +23,30 @@ typedef struct	s_mapinfo
 	int f_color;
 	int c_color;
 
-	int spawn_x;
-	int spawn_y;
+	int player_x;
+	int player_y;
 	int **went;
-    char **map_prtd;
+	char **map_prtd;
 }				t_mapinfo;
 
-bool set_map(char *line, t_mapinfo *mi);
+typedef struct  s_data {
+    void        *img;
+    char        *addr;
+    int         bits_per_pixel;
+    int         line_length;
+    int         endian;
+}               t_data;
+
+typedef struct	s_vars
+{
+	void *mlx;
+	void *win;
+	t_mapinfo mi;
+	t_data img;
+}				t_vars;
+
+
+void map_init(t_mapinfo *mi);
+bool set_info(char *fname, t_mapinfo *mi);
 
 #endif
