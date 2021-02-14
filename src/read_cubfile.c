@@ -31,6 +31,7 @@ void map_init(t_mapinfo *mi)
 
 	mi->player_x = -1;
 	mi->player_y = -1;
+	mi->player_angle = 0;
 }
 
 bool set_resolution(char *line, t_mapinfo *mi)
@@ -173,6 +174,8 @@ bool check_map(t_mapinfo *mi, int n)
 			{
 				mi->player_y = (i + 0.5) * TILE_SIZE;
 				mi->player_x = (j + 0.5) * TILE_SIZE;
+				mi->player_angle = mi->map[i][j];
+				mi->map[i][j] = '0';
 			}
 			j++;
 		}

@@ -25,6 +25,7 @@ typedef struct	s_mapinfo
 
 	int player_x;
 	int player_y;
+	char player_angle;
 	int **went;
 	char **map_prtd;
 }				t_mapinfo;

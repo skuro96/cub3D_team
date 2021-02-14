@@ -98,6 +98,18 @@ void redraw(t_vars *vars)
 	mlx_put_image_to_window(vars->mlx, vars->win, vars->img.img, 0, 0);
 }
 
+bool hasWallAt(t_vars *vars, int step_x, int step_y)
+{
+	int x;
+	int y;
+
+	x = vars->mi.player_x;
+	y = vars->mi.player_y;
+	if ((x + step_x < 0 || vars->mi.win_width < x + step_x) || (y + step_y < 0 || vars->mi.win_height < y + step_y))
+		return (true);
+	return (vars->mi.map[(y + step_y) / TILE_SIZE][(x + step_x) / TILE_SIZE] != '0');
+}
+
 int key_event(int keycode, t_vars *vars)
 {
 	// printf("key=%d\n", keycode);
@@ -108,18 +120,32 @@ int key_event(int keycode, t_vars *vars)
 		exit(0);
 	}
 
-	if (keycode == 0)
+	// mac
+	// A:0, S:1, D:2, W:13, <-:123, ->:124
+	if (keycode == 0 && !hasWallAt(vars, -1, 0))
 		vars->mi.player_x -= 1;
-	if (keycode == 1)
+	if (keycode == 1 && !hasWallAt(vars, 0, 1))
 		vars->mi.player_y += 1;
-	if (keycode == 2)
+	if (keycode == 2 && !hasWallAt(vars, 1, 0))
 		vars->mi.player_x += 1;
-	if (keycode == 13)
+	if (keycode == 13 && !hasWallAt(vars, 0, -1))
 		vars->mi.player_y -= 1;
 	if (keycode == 123)
 		printf("<-\n");
 	if (keycode == 124)
 		printf("->\n");
+
+	// ubuntu
+	// A:97, W:119, S:115, D:100, <-:65361, ->:65363
+	// if (keycode == 97 && !hasWallAt(vars, -1, 0))
+	// 	vars->mi.player_x -= 1;
+	// if (keycode == 119 && !hasWallAt(vars, 0, -1))
+	// 	vars->mi.player_y -= 1;
+	// if (keycode == 115 && !hasWallAt(vars, 0, 1))
+	// 	vars->mi.player_y += 1;
+	// if (keycode == 100 && !hasWallAt(vars, 1, 0))
+	// 	vars->mi.player_x += 1;
+
 	redraw(vars);
 	return (1);
 }
