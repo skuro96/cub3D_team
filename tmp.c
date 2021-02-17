@@ -1,12 +1,8 @@
-#include "libft.h"
+#include <stdio.h>
+#include <math.h>
 
 int main(void)
 {
-    char *line = "";
-
-    char **buf = ft_split(line, ' ');
-
-    if (!buf[0])
-        printf("null");
-    return (0);
+	printf("%f\n", cos(M_PI / 2));
+	return (0);
 }

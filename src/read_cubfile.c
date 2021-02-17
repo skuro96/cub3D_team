@@ -155,6 +155,19 @@ bool set_map(char *line, t_mapinfo *mi)
 	return (freei_return(old, mi->map_row - 1, true));
 }
 
+float to_degree(char c)
+{
+	if (c == 'N')
+		return (1.5 * M_PI);
+	if (c == 'S')
+		return (0.5 * M_PI);
+	if (c == 'W')
+		return (M_PI);
+	if (c == 'E')
+		return (0);
+	return (-1);
+}
+
 bool check_map(t_mapinfo *mi, int n)
 {
 	int i;
@@ -172,16 +185,16 @@ bool check_map(t_mapinfo *mi, int n)
 				return (false);
 			if (ft_strchr("NSWE", mi->map[i][j]))
 			{
-				mi->player_y = (i + 0.5) * TILE_SIZE;
-				mi->player_x = (j + 0.5) * TILE_SIZE;
-				mi->player_angle = mi->map[i][j];
+				mi->player_y = i;
+				mi->player_x = j;
+				mi->player_angle = to_degree(mi->map[i][j]);
 				mi->map[i][j] = '0';
 			}
 			j++;
 		}
 		i++;
 	}
-	return (true);
+	return (mi->player_angle != -1);
 }
 
 bool protect_map(char **map, t_mapinfo *mi)
@@ -242,6 +255,10 @@ bool check_info(t_mapinfo *mi)
 	if (mi->f_color < 0 || mi->c_color < 0)
 		return (false);
 	if (!check_map(mi, mi->map_row))
+		return (false);
+	if (!protect_map(mi->map, mi))
+		return (false);
+	if (!search_map(mi, mi->player_x + 1, mi->player_y + 1))
 		return (false);
 	return (true);
 }
@@ -333,7 +350,7 @@ bool set_info(char *fname, t_mapinfo *mi)
 
 // 	for (int i = 0; i < mi.map_row + 2; i++)
 // 	{
-// 		// printf("%s\n", mi.map_prtd[i]);
+// 		printf("%s\n", mi.map_prtd[i]);
 // 		free(mi.map_prtd[i]);
 // 	}
 // 	free(mi.map_prtd);
