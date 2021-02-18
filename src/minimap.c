@@ -83,7 +83,7 @@ void draw_circle(t_data *data, int x, int y, int r, int color)
 
 void draw_player(t_data *data, t_player p)
 {
-	// printf("(%f, %f)\n", p.x, p.y);
+	printf("(%f, %f): %f\n", p.x, p.y, p.angle);
 	int len = TILE_SIZE * 5;
 	draw_line(data, p.x, p.y, p.x + len * cos(p.angle), p.y + len * sin(p.angle));
 	draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + 0.5*M_PI), p.y + 20 * sin(p.angle + 0.5*M_PI));
@@ -132,7 +132,7 @@ bool has_wall(t_vars vars, int x, int y)
 // A:97, W:119, S:115, D:100, <-:65361, ->:65363
 int key_pressed(int keycode, t_vars *vars)
 {
-	printf("key=%d\n", keycode);
+	// printf("key=%d\n", keycode);
 	if (keycode == 53)
 	{
 		mlx_destroy_window(vars->mlx, vars->win);
@@ -172,10 +172,17 @@ int key_released(int keycode, t_vars *vars)
 	return (1);
 }
 
+double norm_angle(double angle)
+{
+	angle = fmod(angle, 2 * M_PI);
+	if (angle < 0)
+		angle += 2 * M_PI;
+	return (angle);
+}
+
 int render(t_vars *vars)
 {
-	vars->p.angle += vars->p.turn_direction * vars->p.rotation_speed;
-
+	vars->p.angle = norm_angle(vars->p.angle + vars->p.turn_direction * vars->p.rotation_speed);
 	double step_fb = (double)vars->p.walk_direction * (double)vars->p.move_speed;
 	double step_lr = (double)vars->p.lr_direction * (double)vars->p.move_speed;
 	double next_x = (double)vars->p.x + step_fb * cos(vars->p.angle) - step_lr * sin(vars->p.angle);
@@ -190,47 +197,44 @@ int render(t_vars *vars)
 	return (1);
 }
 
-int main(int argc, char **argv)
-{
-	t_vars vars;
+// int main(int argc, char **argv)
+// {
+// 	t_vars vars;
 
-	if (argc < 2)
-		return (0);
+// 	if (argc < 2)
+// 		return (0);
 
-	vars.p.move_speed = 1.0;
-	vars.p.rotation_speed = 1.0 * M_PI / 180;
-	vars.p.turn_direction = 0;
-	vars.p.walk_direction = 0;
-	vars.p.lr_direction = 0;
-	vars.p.angle = M_PI / 2.0;
+// 	vars.p.move_speed = 1.0;
+// 	vars.p.rotation_speed = 0.5 * M_PI / 180;
+// 	vars.p.turn_direction = 0;
+// 	vars.p.walk_direction = 0;
+// 	vars.p.lr_direction = 0;
+// 	// vars.p.angle = M_PI / 2.0;
 
-	map_init(&vars.mi);
-	if (!set_info(argv[1], &vars.mi))
-		return (0);
-	int window_width = vars.mi.win_width;
-	int window_height = vars.mi.win_height;
+// 	map_init(&vars.mi);
+// 	if (!set_info(argv[1], &vars.mi))
+// 		return (0);
+// 	int window_width = vars.mi.win_width;
+// 	int window_height = vars.mi.win_height;
 
-	vars.p.x = (vars.mi.player_x + 0.5) * TILE_SIZE;
-	vars.p.y = (vars.mi.player_y + 0.5) * TILE_SIZE;
-	// vars.p.angle = vars.mi.player_angle;
+// 	vars.p.x = (vars.mi.player_x + 0.5) * TILE_SIZE;
+// 	vars.p.y = (vars.mi.player_y + 0.5) * TILE_SIZE;
+// 	vars.p.angle = vars.mi.player_angle;
 
 
-	for (int i = 0; i < vars.mi.map_row; i++)
-	{
-		printf("%s\n", vars.mi.map[i]);
-	}
-	printf("degree=%f\n", vars.mi.player_angle);
+// 	for (int i = 0; i < vars.mi.map_row; i++)
+// 	{
+// 		printf("%s\n", vars.mi.map[i]);
+// 	}
+// 	printf("degree=%f\n", vars.mi.player_angle);
 
-	vars.mlx = mlx_init();
-	vars.win = mlx_new_window(vars.mlx, window_height, window_width, "mlx_project");
-	vars.img.img = mlx_new_image(vars.mlx, window_height, window_width);
-	vars.img.addr = mlx_get_data_addr(vars.img.img, &(vars.img.bits_per_pixel), &(vars.img.line_length), &(vars.img.endian));
-	draw_map(&vars.img, vars.mi);
-	// draw_player(&vars.img, vars.mi);
-	mlx_put_image_to_window(vars.mlx, vars.win, vars.img.img, 0, 0);
+// 	vars.mlx = mlx_init();
+// 	vars.win = mlx_new_window(vars.mlx, window_height, window_width, "mlx_project");
+// 	vars.img.img = mlx_new_image(vars.mlx, window_height, window_width);
+// 	vars.img.addr = mlx_get_data_addr(vars.img.img, &(vars.img.bits_per_pixel), &(vars.img.line_length), &(vars.img.endian));
 
-	mlx_hook(vars.win, 2, 1L<<0, &key_pressed, &vars);
-	mlx_hook(vars.win, 3, 1L<<1, &key_released, &vars);
-	mlx_loop_hook(vars.mlx, render, &vars);
-	mlx_loop(vars.mlx);
-}
+// 	mlx_hook(vars.win, 2, 1L<<0, &key_pressed, &vars);
+// 	mlx_hook(vars.win, 3, 1L<<1, &key_released, &vars);
+// 	mlx_loop_hook(vars.mlx, render, &vars);
+// 	mlx_loop(vars.mlx);
+// }
