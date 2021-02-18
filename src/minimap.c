@@ -155,6 +155,23 @@ int key_pressed(int keycode, t_vars *vars)
 	return (1);
 }
 
+int key_released(int keycode, t_vars *vars)
+{
+	if (keycode == 1) // S
+		vars->p.walk_direction = 0;
+	if (keycode == 13) // W
+		vars->p.walk_direction = 0;
+	if (keycode == 0) // A
+		vars->p.lr_direction = 0;
+	if (keycode == 2) // D
+		vars->p.lr_direction = 0;
+	if (keycode == 123) // <-
+		vars->p.turn_direction = 0;
+	if (keycode == 124) // ->
+		vars->p.turn_direction = 0;
+	return (1);
+}
+
 int render(t_vars *vars)
 {
 	vars->p.angle += vars->p.turn_direction * vars->p.rotation_speed;
@@ -170,9 +187,6 @@ int render(t_vars *vars)
 		vars->p.y = next_y;
 	}
 	redraw(vars);
-	vars->p.walk_direction = 0;
-	vars->p.turn_direction = 0;
-	vars->p.lr_direction = 0;
 	return (1);
 }
 
@@ -183,8 +197,8 @@ int main(int argc, char **argv)
 	if (argc < 2)
 		return (0);
 
-	vars.p.move_speed = 3.0;
-	vars.p.rotation_speed = 3 * M_PI / 180;
+	vars.p.move_speed = 1.0;
+	vars.p.rotation_speed = 1.0 * M_PI / 180;
 	vars.p.turn_direction = 0;
 	vars.p.walk_direction = 0;
 	vars.p.lr_direction = 0;
@@ -216,6 +230,7 @@ int main(int argc, char **argv)
 	mlx_put_image_to_window(vars.mlx, vars.win, vars.img.img, 0, 0);
 
 	mlx_hook(vars.win, 2, 1L<<0, &key_pressed, &vars);
+	mlx_hook(vars.win, 3, 1L<<1, &key_released, &vars);
 	mlx_loop_hook(vars.mlx, render, &vars);
 	mlx_loop(vars.mlx);
 }
