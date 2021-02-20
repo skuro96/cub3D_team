@@ -14,6 +14,11 @@ double distance(double x1, double y1, double x2, double y2)
 	return (sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)));
 }
 
+bool is_inside_map(t_vars vars, double x, double y)
+{
+	return ((0 <= x && x <= vars.mi.win_width) && (0 <= y && y <= vars.mi.win_height));
+}
+
 void cast_ray(t_player p, double ray_angle, int strip_id)
 {
 	bool is_facing_down = 0 < ray_angle && ray_angle < M_PI;
@@ -29,7 +34,7 @@ void cast_ray(t_player p, double ray_angle, int strip_id)
 	double horz_x = 0;
 	double horz_y = 0;
 
-	y_intercept = ((int)p.y / TILE_SIZE) * TILE_SIZE + is_facing_down ? TILE_SIZE : 0;
+	y_intercept = ((int)p.y / TILE_SIZE) * TILE_SIZE + (is_facing_down ? TILE_SIZE : 0);
 	x_intercept = p.x + (y_intercept - p.y) / tan(ray_angle);
 
 	y_step = TILE_SIZE * (is_facing_up ? -1 : 1);
@@ -37,6 +42,62 @@ void cast_ray(t_player p, double ray_angle, int strip_id)
 	x_step = TILE_SIZE / tan(ray_angle);
 	x_step *= (is_facing_left && x_step > 0) ? -1 : 1;
 	x_step *= (is_facing_right && x_step < 0) ? -1 : 1;
+
+	double next_horz_x = x_intercept;
+	double next_horz_y = y_intercept;
+
+	while (is_inside_map(next_horz_x, next_horz_y))
+	{
+		double x_to_check = next_horz_x;
+		double y_to_check = next_horz_y + (is_facing_up ? -1 : 0);
+
+		if (has_wall(x_to_check, y_to_check))
+		{
+			horz_x = next_horz_x;
+			horz_y = next_horz_y;
+			hit_horz = true;
+			break ;
+		}
+		else
+		{
+			next_horz_x += x_step;
+			next_horz_y += y_step;
+		}
+	}
+
+	bool hit_vert = false;
+	double vert_x = 0;
+	double vert_y = 0;
+
+	x_intercept = (p.x / TILE_SIZE) * TILE_SIZE + (is_facing_right ? TILE_SIZE : 0);
+	y_intercept = p.y + (x_intercept - p.x) * tan(ray_angle);
+
+	x_step = TILE_SIZE + (is_facing_left ? -1 : 1);
+	y_step = TILE_SIZE * tan(ray_angle);
+	y_step *= (is_facing_up && y_step > 0) ? -1 : 1;
+	y_step *= (is_facing_down && y_step < 0) ? -1 : 1;
+
+	double next_vert_x = x_intercept;
+	double next_vert_y = y_intercept;
+
+	while (is_inside_map(next_vert_x, next_vert_y))
+	{
+		double x_to_check = next_vert_x + (is_facing_left ? -1 : 0);
+		double y_to_check = next_vert_y;
+
+		if (has_wall(x_to_check, y_to_check))
+		{
+			vert_x = next_vert_x;
+			vert_y = next_vert_y;
+			hit_vert = true;
+			break ;
+		}
+		else
+		{
+			next_vert_x += x_step;
+			next_vert_y += y_step;
+		}
+	}
 }
 
 int main(int argc, char **argv)
