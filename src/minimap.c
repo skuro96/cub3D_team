@@ -81,13 +81,12 @@ void draw_circle(t_data *data, int x, int y, int r, int color)
 	}
 }
 
-void draw_player(t_data *data, t_player p)
+void draw_player(t_data *data, t_player p, t_ray ray)
 {
-	t_ray ray;
 	// printf("(%f, %f)\n", p.x, p.y);
-	int len = TILE_SIZE * 5;
-	ray_direction(&ray , p);
-	draw_line(data, p.x, p.y, p.x + len * cos(p.angle), p.y + len * sin(p.angle));//down
+	// int len = TILE_SIZE * 5;
+
+	draw_line(data, p.x, p.y, ray.horzontal_wall_x  + cos(p.angle), ray.horzontal_wall_y + sin(p.angle));//down
 	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + 0.5*M_PI), p.y + 20 * sin(p.angle + 0.5*M_PI));//left
 	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + M_PI), p.y + 20 * sin(p.angle + M_PI));//up
 	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + 1.5*M_PI), p.y + 20 * sin(p.angle + 1.5*M_PI));//right
@@ -119,7 +118,8 @@ void redraw(t_vars *vars)
 {
 	draw_rect(&vars->img, 0, 0, 500, 500, 0); // black
 	draw_map(&vars->img, vars->mi);
-	draw_player(&vars->img, vars->p);
+	ray_direction(vars, vars->p);
+	draw_player(&vars->img, vars->p, vars->ray);
 	mlx_put_image_to_window(vars->mlx, vars->win, vars->img.img, 0, 0);
 }
 

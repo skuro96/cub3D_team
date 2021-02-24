@@ -6,6 +6,7 @@
 #include "get_next_line.h"
 #include <stdbool.h>
 #include <math.h>
+#include <float.h>
 
 #define TILE_SIZE 10
 
@@ -52,15 +53,6 @@ typedef struct	s_data {
     int         endian;
 }               t_data;
 
-typedef struct	s_vars
-{
-	void *mlx;
-	void *win;
-	t_mapinfo mi;
-	t_player p;
-	t_data img;
-}				t_vars;
-
 typedef struct s_ray{
 	double ray_angle;
     int wall_hit_x;
@@ -70,25 +62,43 @@ typedef struct s_ray{
     bool face_up;
     bool face_right;
     bool face_left;
-	int xintercept;
-	int yintercept;
+	double xintercept;
+	double yintercept;
 	bool found_horz_hit;
+	bool found_vert_hit;
+	bool was_hit_vertical;
 	int horzontal_wall_x;
 	int horzontal_wall_y;
-    // bool wasHitVertical = false;
-
-    // int isRayFacingDown = rayAngle > 0 && rayAngle < Math.PI;
-    // int isRayFacingUp = !isRayFacingDown;
-
-    // int isRayFacingRight = rayAngle < 0.5 * Math.PI || rayAngle > 1.5 * Math.PI;
-    // int isRayFacingLeft = !isRayFacingRight;
+	int vertical_wall_x;
+	int vertical_wall_y;
+	double xstep;
+	double ystep;
 }           t_ray;
 
+// typedef struct s_vray{
+// 	double xintercept;
+// 	double yintercept;
+// 	bool found_vert_hit;
+// 	double xstep;
+// 	double ystep;
+// }			t_vray;
 
+typedef struct	s_vars
+{
+	void *mlx;
+	void *win;
+	t_mapinfo mi;
+	t_player p;
+	t_data img;
+	t_ray ray;
+}				t_vars;
+
+
+bool has_wall(t_vars vars, int x, int y);
 void map_init(t_mapinfo *mi);
 bool set_info(char *fname, t_mapinfo *mi);
 bool search_map(t_mapinfo *mi, int x, int y);
-void ray_direction(t_ray *ray, t_player p);
+void ray_direction(t_vars *vars, t_player p);
 
 
 #endif
