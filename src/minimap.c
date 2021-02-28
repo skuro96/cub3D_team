@@ -86,7 +86,7 @@ void draw_player(t_data *data, t_player p, t_ray ray)
 	// printf("(%f, %f)\n", p.x, p.y);
 	// int len = TILE_SIZE * 5;
 
-	draw_line(data, p.x, p.y, ray.horzontal_wall_x  + cos(p.angle), ray.horzontal_wall_y + sin(p.angle));//down
+	draw_line(data, p.x, p.y, ray.wall_hit_x, ray.wall_hit_y);//down
 	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + 0.5*M_PI), p.y + 20 * sin(p.angle + 0.5*M_PI));//left
 	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + M_PI), p.y + 20 * sin(p.angle + M_PI));//up
 	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + 1.5*M_PI), p.y + 20 * sin(p.angle + 1.5*M_PI));//right

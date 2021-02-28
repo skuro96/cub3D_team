@@ -71,6 +71,8 @@ typedef struct s_ray{
 	int horzontal_wall_y;
 	int vertical_wall_x;
 	int vertical_wall_y;
+	int horz_wall_content;
+	int vert_wall_content;
 	double xstep;
 	double ystep;
 }           t_ray;
