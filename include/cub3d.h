@@ -9,6 +9,7 @@
 #include <float.h>
 
 #define TILE_SIZE 10
+#define FOV_ANGLE (60 * (M_PI / 180))
 
 typedef struct	s_mapinfo
 {
@@ -54,28 +55,38 @@ typedef struct	s_data {
 }               t_data;
 
 typedef struct s_ray{
-	double ray_angle;
-    int wall_hit_x;
-    int wall_hit_y;
-    int distance;
-    bool face_down;
-    bool face_up;
-    bool face_right;
-    bool face_left;
+	double angle;
+	double wall_hit_x;
+	double wall_hit_y;
+	int distance;
+	int was_hit_vertical;
+	bool face_down;
+	bool face_up;
+	bool face_right;
+	bool face_left;
+	int wall_hit_content;
+}           t_ray[10];
+
+typedef struct s_tmp{
 	double xintercept;
 	double yintercept;
 	bool found_horz_hit;
 	bool found_vert_hit;
 	bool was_hit_vertical;
-	int horzontal_wall_x;
-	int horzontal_wall_y;
-	int vertical_wall_x;
-	int vertical_wall_y;
+	double horzontal_wall_x;
+	double horzontal_wall_y;
+	double vertical_wall_x;
+	double vertical_wall_y;
 	int horz_wall_content;
 	int vert_wall_content;
+	bool face_down;
+	bool face_up;
+	bool face_right;
+	bool face_left;
 	double xstep;
 	double ystep;
-}           t_ray;
+
+}				t_tmp;
 
 // typedef struct s_vray{
 // 	double xintercept;
@@ -101,6 +112,9 @@ void map_init(t_mapinfo *mi);
 bool set_info(char *fname, t_mapinfo *mi);
 bool search_map(t_mapinfo *mi, int x, int y);
 void ray_direction(t_vars *vars, t_player p);
+void draw_line(t_data *data, double x0, double y0, double x1, double y1);
+void draw_pixel(t_data *data, int x, int y, int color);
+
 
 
 #endif

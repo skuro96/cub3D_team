@@ -8,7 +8,7 @@ void	draw_pixel(t_data *data, int x, int y, int color)
     *(unsigned int*)dst = color;
 }
 
-void draw_line(t_data *data, int x0, int y0, int x1, int y1)
+void draw_line(t_data *data, double x0, double y0, double x1, double y1)
 {
 	double dx;
 	double dy;
@@ -84,9 +84,9 @@ void draw_circle(t_data *data, int x, int y, int r, int color)
 void draw_player(t_data *data, t_player p, t_ray ray)
 {
 	// printf("(%f, %f)\n", p.x, p.y);
-	// int len = TILE_SIZE * 5;
+	int len = TILE_SIZE * 5;
 
-	draw_line(data, p.x, p.y, ray.wall_hit_x, ray.wall_hit_y);//down
+	draw_line(data, p.x, p.y, p.x + len * cos(p.angle), p.y + len* sin(p.angle));//down
 	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + 0.5*M_PI), p.y + 20 * sin(p.angle + 0.5*M_PI));//left
 	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + M_PI), p.y + 20 * sin(p.angle + M_PI));//up
 	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + 1.5*M_PI), p.y + 20 * sin(p.angle + 1.5*M_PI));//right
@@ -141,17 +141,17 @@ int key_pressed(int keycode, t_vars *vars)
 		exit(0);
 	}
 
-	if (keycode == 1) // S
+	if (keycode == 115) // S
 		vars->p.walk_direction = -1;
-	if (keycode == 13) // W
+	if (keycode == 119) // W
 		vars->p.walk_direction = 1;
 	if (keycode == 0) // A
 		vars->p.lr_direction = -1;
 	if (keycode == 2) // D
 		vars->p.lr_direction = 1;
-	if (keycode == 123) // <-
+	if (keycode == 65361) // <-
 		vars->p.turn_direction = -1;
-	if (keycode == 124) // ->
+	if (keycode == 65363) // ->
 		vars->p.turn_direction = 1;
 
 	return (1);
@@ -159,17 +159,17 @@ int key_pressed(int keycode, t_vars *vars)
 
 int key_released(int keycode, t_vars *vars)
 {
-	if (keycode == 1) // S
+	if (keycode == 115) // S
 		vars->p.walk_direction = 0;
-	if (keycode == 13) // W
+	if (keycode == 119) // W
 		vars->p.walk_direction = 0;
 	if (keycode == 0) // A
 		vars->p.lr_direction = 0;
 	if (keycode == 2) // D
 		vars->p.lr_direction = 0;
-	if (keycode == 123) // <-
+	if (keycode == 65361) // <-
 		vars->p.turn_direction = 0;
-	if (keycode == 124) // ->
+	if (keycode == 65363) // ->
 		vars->p.turn_direction = 0;
 	return (1);
 }
@@ -199,8 +199,8 @@ int main(int argc, char **argv)
 	if (argc < 2)
 		return (0);
 
-	vars.p.move_speed = 0.5;
-	vars.p.rotation_speed = 1.0 * M_PI / 180;
+	vars.p.move_speed = 0.1;
+	vars.p.rotation_speed = 0.5 * M_PI / 180;
 	vars.p.turn_direction = 0;
 	vars.p.walk_direction = 0;
 	vars.p.lr_direction = 0;
