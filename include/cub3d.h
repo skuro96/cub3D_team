@@ -66,6 +66,7 @@ void map_init(t_mapinfo *mi);
 bool set_info(char *fname, t_mapinfo *mi);
 bool search_map(t_mapinfo *mi, int x, int y);
 
+bool has_wall(t_vars vars, int x, int y);
 int key_pressed(int keycode, t_vars *vars);
 int key_released(int keycode, t_vars *vars);
 int render(t_vars *vars);

@@ -14,12 +14,12 @@ double distance(double x1, double y1, double x2, double y2)
 	return (sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)));
 }
 
-bool is_inside_map(t_vars vars, double x, double y)
+bool is_inside_map(t_vars *vars, double x, double y)
 {
-	return ((0 <= x && x <= vars.mi.win_width) && (0 <= y && y <= vars.mi.win_height));
+	return ((0 <= x && x <= vars->mi.win_width) && (0 <= y && y <= vars->mi.win_height));
 }
 
-void cast_ray(t_player p, double ray_angle, int strip_id)
+void cast_ray(t_vars *vars, t_player p, double ray_angle, int strip_id)
 {
 	bool is_facing_down = 0 < ray_angle && ray_angle < M_PI;
 	bool is_facing_up = !is_facing_down;
@@ -46,12 +46,12 @@ void cast_ray(t_player p, double ray_angle, int strip_id)
 	double next_horz_x = x_intercept;
 	double next_horz_y = y_intercept;
 
-	while (is_inside_map(next_horz_x, next_horz_y))
+	while (is_inside_map(vars, next_horz_x, next_horz_y))
 	{
 		double x_to_check = next_horz_x;
 		double y_to_check = next_horz_y + (is_facing_up ? -1 : 0);
 
-		if (has_wall(x_to_check, y_to_check))
+		if (has_wall(*vars, x_to_check, y_to_check))
 		{
 			horz_x = next_horz_x;
 			horz_y = next_horz_y;
@@ -80,12 +80,12 @@ void cast_ray(t_player p, double ray_angle, int strip_id)
 	double next_vert_x = x_intercept;
 	double next_vert_y = y_intercept;
 
-	while (is_inside_map(next_vert_x, next_vert_y))
+	while (is_inside_map(vars, next_vert_x, next_vert_y))
 	{
 		double x_to_check = next_vert_x + (is_facing_left ? -1 : 0);
 		double y_to_check = next_vert_y;
 
-		if (has_wall(x_to_check, y_to_check))
+		if (has_wall(*vars, x_to_check, y_to_check))
 		{
 			vert_x = next_vert_x;
 			vert_y = next_vert_y;
