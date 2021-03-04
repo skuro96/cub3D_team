@@ -127,9 +127,9 @@ void ray_direction(t_vars *vars, t_player p)
 {
     init_ray(&vars->ray, p);
     //上下左右のレイの向きを調べる
-    vars->ray.face_down = p.angle > 0 && p.angle < M_PI;
+    vars->ray.face_down = vars->ray.ray_angle > 0 && vars->ray.ray_angle < M_PI;
     vars->ray.face_up = !vars->ray.face_down;
-    vars->ray.face_right = p.angle < 0.5 * M_PI || p.angle > 1.5 * M_PI;
+    vars->ray.face_right = vars->ray.ray_angle < 0.5 * M_PI || vars->ray.ray_angle > 1.5 * M_PI;
 	vars->ray.face_left = !vars->ray.face_right;
     // printf("up%d\ndown%d\nleft%d\nright%d\n", ray->face_up, ray->face_down, ray->face_left, ray->face_right);
     search_horz(vars, &vars->ray, p);
