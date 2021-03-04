@@ -8,7 +8,7 @@ void	draw_pixel(t_data *data, int x, int y, int color)
     *(unsigned int*)dst = color;
 }
 
-void draw_line(t_data *data, int x0, int y0, int x1, int y1)
+void draw_line(t_data *data, double x0, double y0, double x1, double y1)
 {
 	double dx;
 	double dy;
@@ -81,12 +81,12 @@ void draw_circle(t_data *data, int x, int y, int r, int color)
 	}
 }
 
-void draw_player(t_data *data, t_player p, t_ray ray)
+void draw_player(t_data *data, t_player p)
 {
 	// printf("(%f, %f)\n", p.x, p.y);
-	// int len = TILE_SIZE * 5;
+	int len = TILE_SIZE * 5;
 
-	draw_line(data, p.x, p.y, ray.wall_hit_x, ray.wall_hit_y);//down
+	draw_line(data, p.x, p.y, p.x + len * cos(p.angle), p.y + len* sin(p.angle));//down
 	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + 0.5*M_PI), p.y + 20 * sin(p.angle + 0.5*M_PI));//left
 	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + M_PI), p.y + 20 * sin(p.angle + M_PI));//up
 	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + 1.5*M_PI), p.y + 20 * sin(p.angle + 1.5*M_PI));//right
@@ -119,15 +119,19 @@ void redraw(t_vars *vars)
 	draw_rect(&vars->img, 0, 0, 500, 500, 0); // black
 	draw_map(&vars->img, vars->mi);
 	ray_direction(vars, vars->p);
-	draw_player(&vars->img, vars->p, vars->ray);
+	// render_rays(vars, vars->p);
+	draw_player(&vars->img, vars->p);
 	mlx_put_image_to_window(vars->mlx, vars->win, vars->img.img, 0, 0);
 }
 
 bool has_wall(t_vars vars, int x, int y)
 {
-	if ((x < 0 || vars.mi.win_width < x) || (y < 0 || vars.mi.win_height < y))
+	if (x < 0 || vars.mi.win_width < x || y < 0 || vars.mi.win_height < y)
 		return (true);
-	return (vars.mi.map[y / TILE_SIZE][x / TILE_SIZE] == '1');
+	// int map_x = floor(x / TILE_SIZE);
+	// int map_y = floor(y / TILE_SIZE);
+	// printf("x = %d, y = %d\n",map_x,map_y);
+	return (vars.mi.map[y / TILE_SIZE][x / TILE_SIZE] != '0');
 }
 
 // ubuntu
@@ -188,6 +192,7 @@ int render(t_vars *vars)
 		vars->p.x = next_x;
 		vars->p.y = next_y;
 	}
+	// ray_direction(vars, vars->p);
 	redraw(vars);
 	return (1);
 }
@@ -199,8 +204,8 @@ int main(int argc, char **argv)
 	if (argc < 2)
 		return (0);
 
-	vars.p.move_speed = 0.5;
-	vars.p.rotation_speed = 1.0 * M_PI / 180;
+	vars.p.move_speed = 0.1;
+	vars.p.rotation_speed = 0.5 * M_PI / 180;
 	vars.p.turn_direction = 0;
 	vars.p.walk_direction = 0;
 	vars.p.lr_direction = 0;
