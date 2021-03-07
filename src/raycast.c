@@ -1,4 +1,5 @@
 #include "cub3d.h"
+#include <float.h>
 
 typedef struct  s_ray
 {
@@ -19,7 +20,7 @@ bool is_inside_map(t_vars *vars, double x, double y)
 	return ((0 <= x && x <= vars->mi.win_width) && (0 <= y && y <= vars->mi.win_height));
 }
 
-void cast_ray(t_vars *vars, t_player p, double ray_angle, int strip_id)
+t_ray cast_ray(t_vars *vars, t_player p, double ray_angle /*, int strip_id */)
 {
 	bool is_facing_down = 0 < ray_angle && ray_angle < M_PI;
 	bool is_facing_up = !is_facing_down;
@@ -98,6 +99,29 @@ void cast_ray(t_vars *vars, t_player p, double ray_angle, int strip_id)
 			next_vert_y += y_step;
 		}
 	}
+
+	double horz_hit_distance = hit_horz ? distance(p.x, p.y, horz_x, horz_y) : DBL_MAX;
+	double vert_hit_distance = hit_vert ? distance(p.x, p.y, vert_x, vert_y) : DBL_MAX;
+
+	t_ray ray;
+
+	if (vert_hit_distance < horz_hit_distance)
+	{
+		ray.distance = vert_hit_distance;
+		ray.wall_hit_x = vert_x;
+		ray.wall_hit_y = vert_y;
+		ray.ray_angle = ray_angle;
+		ray.hit_vertical = true;
+	}
+	else
+	{
+		ray.distance = horz_hit_distance;
+		ray.wall_hit_x = horz_x;
+		ray.wall_hit_y = horz_y;
+		ray.ray_angle = ray_angle;
+		ray.hit_vertical = false;
+	}
+	return ray;
 }
 
 int main(int argc, char **argv)
