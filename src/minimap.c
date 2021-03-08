@@ -83,12 +83,12 @@ void draw_circle(t_data *data, int x, int y, int r, int color)
 
 void draw_player(t_data *data, t_player p)
 {
-	printf("(%f, %f): %f\n", p.x, p.y, p.angle);
+	// printf("(%f, %f): %f\n", p.x, p.y, p.angle);
 	int len = TILE_SIZE * 5;
-	draw_line(data, p.x, p.y, p.x + len * cos(p.angle), p.y + len * sin(p.angle));
-	draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + 0.5*M_PI), p.y + 20 * sin(p.angle + 0.5*M_PI));
-	draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + M_PI), p.y + 20 * sin(p.angle + M_PI));
-	draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + 1.5*M_PI), p.y + 20 * sin(p.angle + 1.5*M_PI));
+	// draw_line(data, p.x, p.y, p.x + len * cos(p.angle), p.y + len * sin(p.angle));
+	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + 0.5*M_PI), p.y + 20 * sin(p.angle + 0.5*M_PI));
+	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + M_PI), p.y + 20 * sin(p.angle + M_PI));
+	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + 1.5*M_PI), p.y + 20 * sin(p.angle + 1.5*M_PI));
 	draw_pixel(data, p.x, p.y, 0x00ff00);
 }
 
@@ -118,14 +118,17 @@ void redraw(t_vars *vars)
 	draw_rect(&vars->img, 0, 0, 500, 500, 0); // black
 	draw_map(&vars->img, vars->mi);
 	draw_player(&vars->img, vars->p);
+	// draw_line(&vars->img, vars->p.x, vars->p.y, vars->ray.wall_hit_x, vars->ray.wall_hit_y);
+	render_all_rays(vars);
 	mlx_put_image_to_window(vars->mlx, vars->win, vars->img.img, 0, 0);
 }
 
 bool has_wall(t_vars vars, int x, int y)
 {
+	printf("(x, y): (%d, %d)\n", x, y);
 	if ((x < 0 || vars.mi.win_width < x) || (y < 0 || vars.mi.win_height < y))
 		return (true);
-	return (vars.mi.map[y / TILE_SIZE][x / TILE_SIZE] == '1');
+	return (vars.mi.map[y / TILE_SIZE][x / TILE_SIZE] == '1' || vars.mi.map[y / TILE_SIZE][x / TILE_SIZE] == ' ');
 }
 
 // ubuntu
@@ -193,6 +196,9 @@ int render(t_vars *vars)
 		vars->p.x = next_x;
 		vars->p.y = next_y;
 	}
+
+	// vars->ray = cast_ray(vars, vars->p, vars->p.angle);
+	// printf("distance = %f\n", vars->ray.distance);
 	redraw(vars);
 	return (1);
 }

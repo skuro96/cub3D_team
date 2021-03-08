@@ -1,27 +1,26 @@
 #include "cub3d.h"
 #include <float.h>
-
-typedef struct  s_ray
-{
-	double ray_angle;
-	double wall_hit_x;
-	double wall_hit_y;
-	double distance;
-	bool hit_vertical;
-}			t_ray;
+#define FOV_ANGLE (60 * M_PI / 180)
 
 double distance(double x1, double y1, double x2, double y2)
 {
 	return (sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)));
 }
 
-bool is_inside_map(t_vars *vars, double x, double y)
+bool is_inside_map(t_vars *vars, int x, int y)
 {
-	return ((0 <= x && x <= vars->mi.win_width) && (0 <= y && y <= vars->mi.win_height));
+	// if (!((0 <= x && x <= vars->mi.win_width) && (0 <= y && y <= vars->mi.win_height)))
+	// 	return (false);
+	// printf("(%d, %d): %c\n", x, y, vars->mi.map_prtd[y / TILE_SIZE + 1][x / TILE_SIZE + 1]);
+	// return (vars->mi.map_prtd[y / TILE_SIZE + 1][x / TILE_SIZE + 1] != '#');
+	return (0 <= x && x < vars->mi.map_col * TILE_SIZE && 0 <= y && y < vars->mi.map_row * TILE_SIZE);
 }
 
 t_ray cast_ray(t_vars *vars, t_player p, double ray_angle /*, int strip_id */)
 {
+	// printf("angle: %f\n", ray_angle);
+	ray_angle = norm_angle(ray_angle);
+
 	bool is_facing_down = 0 < ray_angle && ray_angle < M_PI;
 	bool is_facing_up = !is_facing_down;
 
@@ -70,10 +69,10 @@ t_ray cast_ray(t_vars *vars, t_player p, double ray_angle /*, int strip_id */)
 	double vert_x = 0;
 	double vert_y = 0;
 
-	x_intercept = (p.x / TILE_SIZE) * TILE_SIZE + (is_facing_right ? TILE_SIZE : 0);
+	x_intercept = ((int)p.x / TILE_SIZE) * TILE_SIZE + (is_facing_right ? TILE_SIZE : 0);
 	y_intercept = p.y + (x_intercept - p.x) * tan(ray_angle);
 
-	x_step = TILE_SIZE + (is_facing_left ? -1 : 1);
+	x_step = TILE_SIZE * (is_facing_left ? -1 : 1);
 	y_step = TILE_SIZE * tan(ray_angle);
 	y_step *= (is_facing_up && y_step > 0) ? -1 : 1;
 	y_step *= (is_facing_down && y_step < 0) ? -1 : 1;
@@ -110,7 +109,7 @@ t_ray cast_ray(t_vars *vars, t_player p, double ray_angle /*, int strip_id */)
 		ray.distance = vert_hit_distance;
 		ray.wall_hit_x = vert_x;
 		ray.wall_hit_y = vert_y;
-		ray.ray_angle = ray_angle;
+		// ray.ray_angle = ray_angle;
 		ray.hit_vertical = true;
 	}
 	else
@@ -118,10 +117,28 @@ t_ray cast_ray(t_vars *vars, t_player p, double ray_angle /*, int strip_id */)
 		ray.distance = horz_hit_distance;
 		ray.wall_hit_x = horz_x;
 		ray.wall_hit_y = horz_y;
-		ray.ray_angle = ray_angle;
+		// ray.ray_angle = ray_angle;
 		ray.hit_vertical = false;
 	}
+	printf("(%f, %f)\n", ray.wall_hit_x, ray.wall_hit_y);
 	return ray;
+}
+
+void render_all_rays(t_vars *vars)
+{
+	t_ray *rays;
+	int i;
+
+	if (!(rays = malloc(sizeof(t_ray) * vars->mi.win_width)))
+		return ;
+	i = 0;
+	while (i < vars->mi.win_width)
+	{
+		rays[i] = cast_ray(vars, vars->p, vars->p.angle - FOV_ANGLE * (0.5 - i / (double)vars->mi.win_width));
+		draw_line(&vars->img, vars->p.x, vars->p.y, rays[i].wall_hit_x, rays[i].wall_hit_y);
+		i++;
+	}
+	free(rays);
 }
 
 int main(int argc, char **argv)
@@ -148,10 +165,9 @@ int main(int argc, char **argv)
 	vars.p.y = (vars.mi.player_y + 0.5) * TILE_SIZE;
 	vars.p.angle = vars.mi.player_angle;
 
-
-	for (int i = 0; i < vars.mi.map_row; i++)
+	for (int i = 0; i < vars.mi.map_row + 2; i++)
 	{
-		printf("%s\n", vars.mi.map[i]);
+		printf("%s\n", vars.mi.map_prtd[i]);
 	}
 	printf("degree=%f\n", vars.mi.player_angle);
 
