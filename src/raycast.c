@@ -21,10 +21,10 @@ t_ray cast_ray(t_vars *vars, t_player p, double ray_angle /*, int strip_id */)
 	// printf("angle: %f\n", ray_angle);
 	ray_angle = norm_angle(ray_angle);
 
-	bool is_facing_down = 0 < ray_angle && ray_angle < M_PI;
+	bool is_facing_down = 0 <= ray_angle && ray_angle < M_PI;
 	bool is_facing_up = !is_facing_down;
 
-	bool is_facing_right = ray_angle < 0.5 * M_PI || 1.5 * M_PI < ray_angle;
+	bool is_facing_right = ray_angle <= 0.5 * M_PI || 1.5 * M_PI < ray_angle;
 	bool is_facing_left = !is_facing_right;
 
 	double x_intercept, y_intercept;
@@ -104,12 +104,12 @@ t_ray cast_ray(t_vars *vars, t_player p, double ray_angle /*, int strip_id */)
 
 	t_ray ray;
 
-	if (vert_hit_distance < horz_hit_distance)
+	if (vert_hit_distance <= horz_hit_distance)
 	{
 		ray.distance = vert_hit_distance;
 		ray.wall_hit_x = vert_x;
 		ray.wall_hit_y = vert_y;
-		// ray.ray_angle = ray_angle;
+		ray.ray_angle = ray_angle;
 		ray.hit_vertical = true;
 	}
 	else
@@ -117,11 +117,50 @@ t_ray cast_ray(t_vars *vars, t_player p, double ray_angle /*, int strip_id */)
 		ray.distance = horz_hit_distance;
 		ray.wall_hit_x = horz_x;
 		ray.wall_hit_y = horz_y;
-		// ray.ray_angle = ray_angle;
+		ray.ray_angle = ray_angle;
 		ray.hit_vertical = false;
 	}
 	printf("(%f, %f)\n", ray.wall_hit_x, ray.wall_hit_y);
 	return ray;
+}
+
+void draw_line_color(t_data *data, int x0, int y0, int x1, int y1, int color)
+{
+	double dx;
+	double dy;
+	double len;
+	int i;
+
+	dx = x1 - x0;
+	dy = y1 - y0;
+	len = (fabs(dx) >= fabs(dy)) ? fabs(dx) : fabs(dy);
+	dx /= len;
+	dy /= len;
+	i = 0;
+	while (i < (int)len)
+	{
+		draw_pixel(data, x0 + (int)(dx * i), y0 + (int)(dy * i), color);
+		i++;
+	}
+}
+
+void render_wall(t_vars *vars, t_player p, t_ray ray, int index)
+{
+	double prep_distance = ray.distance * cos(ray.ray_angle - p.angle);
+	int wall_height = (TILE_SIZE / prep_distance) * (vars->mi.win_width / 2) / tan(FOV_ANGLE / 2);
+
+	int wall_top = (vars->mi.win_height / 2) - (wall_height / 2);
+	wall_top = wall_top < 0 ? 0 : wall_top;
+
+	int wall_bottom = (vars->mi.win_height / 2) + (wall_height / 2);
+	wall_bottom = wall_bottom > vars->mi.win_height ? vars->mi.win_height : wall_bottom;
+
+	draw_line_color(&vars->img, index, 0, index, wall_top, 0xb0c4de);
+	if (ray.hit_vertical)
+		draw_line_color(&vars->img, index, wall_top, index, wall_bottom, 0xffffff);
+	else
+		draw_line_color(&vars->img, index, wall_top, index, wall_bottom, 0xf0f0f0);
+	draw_line_color(&vars->img, index, wall_bottom, index, vars->mi.win_height, 0xd2b48c);
 }
 
 void render_all_rays(t_vars *vars)
@@ -135,6 +174,7 @@ void render_all_rays(t_vars *vars)
 	while (i < vars->mi.win_width)
 	{
 		rays[i] = cast_ray(vars, vars->p, vars->p.angle - FOV_ANGLE * (0.5 - i / (double)vars->mi.win_width));
+		render_wall(vars, vars->p, rays[i], i);
 		draw_line(&vars->img, vars->p.x, vars->p.y, rays[i].wall_hit_x, rays[i].wall_hit_y);
 		i++;
 	}
@@ -148,8 +188,8 @@ int main(int argc, char **argv)
 	if (argc < 2)
 		return (0);
 
-	vars.p.move_speed = 1.0;
-	vars.p.rotation_speed = 0.5 * M_PI / 180;
+	vars.p.move_speed = 0.5;
+	vars.p.rotation_speed = 1 * M_PI / 180;
 	vars.p.turn_direction = 0;
 	vars.p.walk_direction = 0;
 	vars.p.lr_direction = 0;
@@ -172,8 +212,8 @@ int main(int argc, char **argv)
 	printf("degree=%f\n", vars.mi.player_angle);
 
 	vars.mlx = mlx_init();
-	vars.win = mlx_new_window(vars.mlx, window_height, window_width, "mlx_project");
-	vars.img.img = mlx_new_image(vars.mlx, window_height, window_width);
+	vars.win = mlx_new_window(vars.mlx, window_width, window_height, "mlx_project");
+	vars.img.img = mlx_new_image(vars.mlx, window_width, window_height);
 	vars.img.addr = mlx_get_data_addr(vars.img.img, &(vars.img.bits_per_pixel), &(vars.img.line_length), &(vars.img.endian));
 
 	mlx_hook(vars.win, 2, 1L<<0, &key_pressed, &vars);

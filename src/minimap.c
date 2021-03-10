@@ -106,7 +106,7 @@ void draw_map(t_data *data, t_mapinfo mi)
 		while (j < ft_strlen(map[i]))
 		{
 			if (map[i][j] == '1')
-				draw_square(data, j * TILE_SIZE, i * TILE_SIZE, TILE_SIZE, 0x00ffffff);
+				draw_square(data, j * TILE_SIZE, i * TILE_SIZE, TILE_SIZE, 0);
 			j++;
 		}
 		i++;
@@ -116,10 +116,10 @@ void draw_map(t_data *data, t_mapinfo mi)
 void redraw(t_vars *vars)
 {
 	draw_rect(&vars->img, 0, 0, 500, 500, 0); // black
-	draw_map(&vars->img, vars->mi);
-	draw_player(&vars->img, vars->p);
 	// draw_line(&vars->img, vars->p.x, vars->p.y, vars->ray.wall_hit_x, vars->ray.wall_hit_y);
 	render_all_rays(vars);
+	draw_map(&vars->img, vars->mi);
+	draw_player(&vars->img, vars->p);
 	mlx_put_image_to_window(vars->mlx, vars->win, vars->img.img, 0, 0);
 }
 

@@ -81,6 +81,7 @@ int key_pressed(int keycode, t_vars *vars);
 int key_released(int keycode, t_vars *vars);
 int render(t_vars *vars);
 
+void	draw_pixel(t_data *data, int x, int y, int color);
 void draw_line(t_data *data, int x0, int y0, int x1, int y1);
 
 double norm_angle(double angle);
