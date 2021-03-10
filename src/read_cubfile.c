@@ -42,7 +42,7 @@ bool set_resolution(char *line, t_mapinfo *mi)
 		return (false);
 	if (!buf[0] || !buf[1] || !buf[2] || buf[3])
 		return (freeturn_buf(buf, false));
-	if (ft_strcmp(buf[0], "R") == 0 && (mi->win_height = ft_atoi(buf[1])) > 0 && (mi->win_width = ft_atoi(buf[2])) > 0)
+	if (ft_strcmp(buf[0], "R") == 0 && (mi->win_width = ft_atoi(buf[1])) > 0 && (mi->win_height = ft_atoi(buf[2])) > 0)
 		return (freeturn_buf(buf, true));
 	return (freeturn_buf(buf, false));
 }
