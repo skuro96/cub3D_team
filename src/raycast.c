@@ -163,10 +163,30 @@ void render_wall(t_vars *vars, t_player p, t_ray ray, int index)
 	draw_line_color(&vars->img, index, wall_bottom, index, vars->mi.win_height, 0xd2b48c);
 }
 
+void setup(t_vars *vars)
+{
+	int x;
+	int y;
+
+	vars->pict_color = (int *)malloc(sizeof (int) * vars->mi.win_width * vars->mi.win_height);
+	vars->tex_color = (uint32_t *)malloc(sizeof(uint32_t) * TILE_SIZE * TILE_SIZE);
+	x = 0;
+	y = 0;
+	while(x < TILE_SIZE)
+	{
+		while(y < TILE_SIZE)
+		{
+			// vars->tex_color[TILE_SIZE * ]
+		}
+	}
+}
+
+
 void render_all_rays(t_vars *vars)
 {
 	t_ray *rays;
 	int i;
+	// setup(vars);
 
 	if (!(rays = malloc(sizeof(t_ray) * vars->mi.win_width)))
 		return ;
@@ -175,7 +195,7 @@ void render_all_rays(t_vars *vars)
 	{
 		rays[i] = cast_ray(vars, vars->p, vars->p.angle - FOV_ANGLE * (0.5 - i / (double)vars->mi.win_width));
 		render_wall(vars, vars->p, rays[i], i);
-		draw_line(&vars->img, vars->p.x, vars->p.y, rays[i].wall_hit_x, rays[i].wall_hit_y);
+		draw_line(&vars->img, vars->p.x * 0.3, vars->p.y * 0.3, rays[i].wall_hit_x * 0.3, rays[i].wall_hit_y * 0.3);
 		i++;
 	}
 	free(rays);
@@ -213,6 +233,7 @@ int main(int argc, char **argv)
 
 	vars.mlx = mlx_init();
 	vars.win = mlx_new_window(vars.mlx, window_width, window_height, "mlx_project");
+	// vars->img.ptr = mlx_xpm_file_to_image(mlx, "../wall_s.xpm", &img.width, &img.height);
 	vars.img.img = mlx_new_image(vars.mlx, window_width, window_height);
 	vars.img.addr = mlx_get_data_addr(vars.img.img, &(vars.img.bits_per_pixel), &(vars.img.line_length), &(vars.img.endian));
 

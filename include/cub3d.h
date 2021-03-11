@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <math.h>
 
-#define TILE_SIZE 10
+#define TILE_SIZE 64
 
 typedef struct	s_mapinfo
 {
@@ -47,6 +47,7 @@ typedef struct	s_player
 typedef struct	s_data {
     void        *img;
     char        *addr;
+	void		*ptr;
     int         bits_per_pixel;
     int         line_length;
     int         endian;
@@ -65,6 +66,8 @@ typedef struct	s_vars
 {
 	void *mlx;
 	void *win;
+	int *pict_color;
+	uint32_t *tex_color;
 	t_mapinfo mi;
 	t_player p;
 	t_data img;

@@ -84,12 +84,12 @@ void draw_circle(t_data *data, int x, int y, int r, int color)
 void draw_player(t_data *data, t_player p)
 {
 	// printf("(%f, %f): %f\n", p.x, p.y, p.angle);
-	int len = TILE_SIZE * 5;
+	// int len = TILE_SIZE * 5;
 	// draw_line(data, p.x, p.y, p.x + len * cos(p.angle), p.y + len * sin(p.angle));
 	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + 0.5*M_PI), p.y + 20 * sin(p.angle + 0.5*M_PI));
 	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + M_PI), p.y + 20 * sin(p.angle + M_PI));
 	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + 1.5*M_PI), p.y + 20 * sin(p.angle + 1.5*M_PI));
-	draw_pixel(data, p.x, p.y, 0x00ff00);
+	draw_pixel(data, p.x * 0.3, p.y * 0.3, 0x00ff00);
 }
 
 void draw_map(t_data *data, t_mapinfo mi)
@@ -106,7 +106,7 @@ void draw_map(t_data *data, t_mapinfo mi)
 		while (j < ft_strlen(map[i]))
 		{
 			if (map[i][j] == '1')
-				draw_square(data, j * TILE_SIZE, i * TILE_SIZE, TILE_SIZE, 0);
+				draw_square(data, j * TILE_SIZE * 0.3, i * TILE_SIZE * 0.3, TILE_SIZE * 0.3, 0);
 			j++;
 		}
 		i++;
@@ -117,6 +117,8 @@ void redraw(t_vars *vars)
 {
 	draw_rect(&vars->img, 0, 0, 500, 500, 0); // black
 	// draw_line(&vars->img, vars->p.x, vars->p.y, vars->ray.wall_hit_x, vars->ray.wall_hit_y);
+	// clear_color_buffer(vars);
+	// render_color
 	render_all_rays(vars);
 	draw_map(&vars->img, vars->mi);
 	draw_player(&vars->img, vars->p);
