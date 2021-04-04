@@ -2,126 +2,160 @@
 #include <float.h>
 #define FOV_ANGLE (60 * M_PI / 180)
 
-double distance(double x1, double y1, double x2, double y2)
+double distance(double x1, double y1, double x2, double y2)//マクロ？
 {
 	return (sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)));
 }
 
-bool is_inside_map(t_vars *vars, int x, int y)
+bool is_inside_map(t_vars *vars, int x, int y)//マクロ？
 {
-	// if (!((0 <= x && x <= vars->mi.win_width) && (0 <= y && y <= vars->mi.win_height)))
-	// 	return (false);
-	// printf("(%d, %d): %c\n", x, y, vars->mi.map_prtd[y / TILE_SIZE + 1][x / TILE_SIZE + 1]);
-	// return (vars->mi.map_prtd[y / TILE_SIZE + 1][x / TILE_SIZE + 1] != '#');
 	return (0 <= x && x < vars->mi.map_col * TILE_SIZE && 0 <= y && y < vars->mi.map_row * TILE_SIZE);
 }
 
-t_ray cast_ray(t_vars *vars, t_player p, double ray_angle /*, int strip_id */)
+void face_orientation(t_vars *vars, double ray_angle)
 {
-	// printf("angle: %f\n", ray_angle);
-	ray_angle = norm_angle(ray_angle);
+	vars->tmp.is_facing_down = 0 <= ray_angle && ray_angle < M_PI;
+	vars->tmp.is_facing_up = !vars->tmp.is_facing_down;
 
-	bool is_facing_down = 0 <= ray_angle && ray_angle < M_PI;
-	bool is_facing_up = !is_facing_down;
+	vars->tmp.is_facing_right = ray_angle <= 0.5 * M_PI || 1.5 * M_PI < ray_angle;
+	vars->tmp.is_facing_left = !vars->tmp.is_facing_right;
+}
 
-	bool is_facing_right = ray_angle <= 0.5 * M_PI || 1.5 * M_PI < ray_angle;
-	bool is_facing_left = !is_facing_right;
+void init_tmp(t_vars *vars)
+{
+	vars->tmp.hit_horz = false;
+	vars->tmp.horz_x = 0;
+	vars->tmp.horz_y = 0;
+	vars->tmp.hit_vert = false;
+	vars->tmp.vert_x = 0;
+	vars->tmp.vert_y = 0;
+}
 
-	double x_intercept, y_intercept;
-	double x_step, y_step;
-
-	bool hit_horz = false;
-	double horz_x = 0;
-	double horz_y = 0;
-
-	y_intercept = ((int)p.y / TILE_SIZE) * TILE_SIZE + (is_facing_down ? TILE_SIZE : 0);
-	x_intercept = p.x + (y_intercept - p.y) / tan(ray_angle);
-
-	y_step = TILE_SIZE * (is_facing_up ? -1 : 1);
-
-	x_step = TILE_SIZE / tan(ray_angle);
-	x_step *= (is_facing_left && x_step > 0) ? -1 : 1;
-	x_step *= (is_facing_right && x_step < 0) ? -1 : 1;
-
-	double next_horz_x = x_intercept;
-	double next_horz_y = y_intercept;
-
-	while (is_inside_map(vars, next_horz_x, next_horz_y))
+void calc_step(t_vars *vars, t_player p, int horz)
+{
+	if(horz == 1)
 	{
-		double x_to_check = next_horz_x;
-		double y_to_check = next_horz_y + (is_facing_up ? -1 : 0);
-
-		if (has_wall(*vars, x_to_check, y_to_check))
-		{
-			horz_x = next_horz_x;
-			horz_y = next_horz_y;
-			hit_horz = true;
-			break ;
-		}
-		else
-		{
-			next_horz_x += x_step;
-			next_horz_y += y_step;
-		}
+		vars->tmp.y_intercept = ((int)p.y / TILE_SIZE) * TILE_SIZE + (vars->tmp.is_facing_down ? TILE_SIZE : 0);
+		vars->tmp.x_intercept = p.x + (vars->tmp.y_intercept - p.y) / tan(vars->tmp.ray_angle);
+		vars->tmp.y_step = TILE_SIZE * (vars->tmp.is_facing_up ? -1 : 1);
+		vars->tmp.x_step = TILE_SIZE / tan(vars->tmp.ray_angle);
+		vars->tmp.x_step *= (vars->tmp.is_facing_left && vars->tmp.x_step > 0) ? -1 : 1;
+		vars->tmp.x_step *= (vars->tmp.is_facing_right && vars->tmp.x_step < 0) ? -1 : 1;
 	}
+	else
+	{
+		vars->tmp.x_intercept = ((int)p.x / TILE_SIZE) * TILE_SIZE + (vars->tmp.is_facing_right ? TILE_SIZE : 0);
+		vars->tmp.y_intercept = p.y + (vars->tmp.x_intercept - p.x) * tan(vars->tmp.ray_angle);
+		vars->tmp.x_step = TILE_SIZE * (vars->tmp.is_facing_left ? -1 : 1);
+		vars->tmp.y_step = TILE_SIZE * tan(vars->tmp.ray_angle);
+		vars->tmp.y_step *= (vars->tmp.is_facing_up && vars->tmp.y_step > 0) ? -1 : 1;
+		vars->tmp.y_step *= (vars->tmp.is_facing_down && vars->tmp.y_step < 0) ? -1 : 1;
+	}
+}
 
-	bool hit_vert = false;
-	double vert_x = 0;
-	double vert_y = 0;
+void vert_ray_part(t_vars *vars, t_player p)
+{
+	double next_vert_x;
+	double next_vert_y;
+	double x_to_check;
+	double y_to_check;
 
-	x_intercept = ((int)p.x / TILE_SIZE) * TILE_SIZE + (is_facing_right ? TILE_SIZE : 0);
-	y_intercept = p.y + (x_intercept - p.x) * tan(ray_angle);
-
-	x_step = TILE_SIZE * (is_facing_left ? -1 : 1);
-	y_step = TILE_SIZE * tan(ray_angle);
-	y_step *= (is_facing_up && y_step > 0) ? -1 : 1;
-	y_step *= (is_facing_down && y_step < 0) ? -1 : 1;
-
-	double next_vert_x = x_intercept;
-	double next_vert_y = y_intercept;
-
+	calc_step(vars, p, 0);
+	next_vert_x = vars->tmp.x_intercept;
+	next_vert_y = vars->tmp.y_intercept;
 	while (is_inside_map(vars, next_vert_x, next_vert_y))
 	{
-		double x_to_check = next_vert_x + (is_facing_left ? -1 : 0);
-		double y_to_check = next_vert_y;
+		x_to_check = next_vert_x + (vars->tmp.is_facing_left ? -1 : 0);
+		y_to_check = next_vert_y;
 
 		if (has_wall(*vars, x_to_check, y_to_check))
 		{
-			vert_x = next_vert_x;
-			vert_y = next_vert_y;
-			hit_vert = true;
+			vars->tmp.vert_x = next_vert_x;
+			vars->tmp.vert_y = next_vert_y;
+			vars->tmp.hit_vert = true;
 			break ;
 		}
 		else
 		{
-			next_vert_x += x_step;
-			next_vert_y += y_step;
+			next_vert_x += vars->tmp.x_step;
+			next_vert_y += vars->tmp.y_step;
 		}
 	}
+}
 
-	double horz_hit_distance = hit_horz ? distance(p.x, p.y, horz_x, horz_y) : DBL_MAX;
-	double vert_hit_distance = hit_vert ? distance(p.x, p.y, vert_x, vert_y) : DBL_MAX;
+void step_by_step_rayhorz(t_vars *vars, int horz)
+{
+	double next_horz_x;
+	double next_horz_y;
+	double x_to_check;
+	double y_to_check;
 
+	next_horz_x = vars->tmp.x_intercept;
+	next_horz_y = vars->tmp.y_intercept;
+	while (is_inside_map(vars, next_horz_x, next_horz_y))
+	{
+		x_to_check = next_horz_x;
+		y_to_check = next_horz_y + (vars->tmp.is_facing_up ? -1 : 0);
+
+		if (has_wall(*vars, x_to_check, y_to_check))
+		{
+			vars->tmp.horz_x = next_horz_x;
+			vars->tmp.horz_y = next_horz_y;
+			vars->tmp.hit_horz = true;
+			break ;
+		}
+		else
+		{
+			next_horz_x += vars->tmp.x_step;
+			next_horz_y += vars->tmp.y_step;
+		}
+	}
+}
+
+t_ray calc_wall_distance(t_vars *vars, t_player p)
+{
 	t_ray ray;
+	double horz_hit_distance;
+	double vert_hit_distance;
 
+	horz_hit_distance = vars->tmp.hit_horz ? distance(p.x, p.y, vars->tmp.horz_x, vars->tmp.horz_y) : DBL_MAX;
+	vert_hit_distance = vars->tmp.hit_vert ? distance(p.x, p.y, vars->tmp.vert_x, vars->tmp.vert_y) : DBL_MAX;
 	if (vert_hit_distance <= horz_hit_distance)
 	{
 		ray.distance = vert_hit_distance;
-		ray.wall_hit_x = vert_x;
-		ray.wall_hit_y = vert_y;
-		ray.ray_angle = ray_angle;
+		ray.wall_hit_x = vars->tmp.vert_x;
+		ray.wall_hit_y = vars->tmp.vert_y;
+		ray.ray_angle = vars->tmp.ray_angle;
 		ray.hit_vertical = true;
 	}
 	else
 	{
 		ray.distance = horz_hit_distance;
-		ray.wall_hit_x = horz_x;
-		ray.wall_hit_y = horz_y;
-		ray.ray_angle = ray_angle;
+		ray.wall_hit_x = vars->tmp.horz_x;
+		ray.wall_hit_y = vars->tmp.horz_y;
+		ray.ray_angle = vars->tmp.ray_angle;
 		ray.hit_vertical = false;
 	}
-	printf("(%f, %f)\n", ray.wall_hit_x, ray.wall_hit_y);
-	return ray;
+	ray.face_up = vars->tmp.is_facing_up;
+	ray.face_down = vars->tmp.is_facing_down;
+	// ray.face_right = is_facing_right;使う？？？？
+	// ray.face_left = is_facing_left;使う？？？？
+	// printf("(%f, %f)\n", ray.wall_hit_x, ray.wall_hit_y);
+	return (ray);
+}
+
+t_ray cast_ray(t_vars *vars, t_player p, double ray_angle /*, int strip_id */)
+{
+	t_ray ray;
+	// printf("angle: %f\n", ray_angle);
+	vars->tmp.ray_angle = norm_angle(ray_angle);
+	face_orientation(vars, vars->tmp.ray_angle);
+	init_tmp(vars);
+	calc_step(vars, p, 1);
+	step_by_step_rayhorz(vars, 1);
+	vert_ray_part(vars, p);
+	ray = calc_wall_distance(vars, p);
+	return (ray);
 }
 
 void draw_line_color(t_data *data, int x0, int y0, int x1, int y1, int color)
@@ -144,41 +178,92 @@ void draw_line_color(t_data *data, int x0, int y0, int x1, int y1, int color)
 	}
 }
 
-void render_wall(t_vars *vars, t_player p, t_ray ray, int index)
+int wall_direction(t_vars *vars, t_ray ray)
 {
-	double prep_distance = ray.distance * cos(ray.ray_angle - p.angle);
-	int wall_height = (TILE_SIZE / prep_distance) * (vars->mi.win_width / 2) / tan(FOV_ANGLE / 2);
+	if(ray.face_up && !ray.hit_vertical)
+	{
+		return (0);
+	}else if(ray.face_up && ray.hit_vertical)
+	{
+		if(vars->p.x > ray.wall_hit_x)
+			return(1);
+		else
+			return (2);
+	}else if (ray.face_down && !ray.hit_vertical)
+	{
+		return (3);
+	}else if(ray.face_down && ray.hit_vertical)
+	{
+		if(vars->p.x < ray.wall_hit_x)
+			return (2);
+		else
+			return (1);
+	}
+	printf("error\n");
+	return(-1);
 
-	int wall_top = (vars->mi.win_height / 2) - (wall_height / 2);
-	wall_top = wall_top < 0 ? 0 : wall_top;
+}
+void render_texture(t_vars *vars, t_ray ray, t_wall *wall, int tex_num)
+{
+	int tex_off_x;
+	int tex_off_y;
+	int distance_from_top;
+	double width;
 
-	int wall_bottom = (vars->mi.win_height / 2) + (wall_height / 2);
-	wall_bottom = wall_bottom > vars->mi.win_height ? vars->mi.win_height : wall_bottom;
+	width = (double)vars->tex.tex_width[tex_num] / (double)TILE_SIZE;
+	printf("%f\n",width);
+	tex_off_x = ray.hit_vertical ? \
+	(int)(fmod(ray.wall_hit_y , (double)TILE_SIZE) * width) : \
+	(int)(fmod(ray.wall_hit_x , (double)TILE_SIZE) * width); 
+	while (wall->y < wall->wall_bottom)
+	{
+		distance_from_top = wall->y + (wall->wall_height / 2) - (vars->mi.win_height / 2);
+		tex_off_y = distance_from_top * \
+		((float)vars->tex.tex_height[tex_num] / wall->wall_height);
+		vars->img.data[(vars->mi.win_width * wall->y) + wall->index] = \
+		(uint32_t)vars->tex.texture[tex_num]\
+		[tex_off_y * vars->tex.tex_width[tex_num] + tex_off_x];
+		wall->y += 1;
+	}
 
-	draw_line_color(&vars->img, index, 0, index, wall_top, 0xb0c4de);
-	if (ray.hit_vertical)
-		draw_line_color(&vars->img, index, wall_top, index, wall_bottom, 0xffffff);
-	else
-		draw_line_color(&vars->img, index, wall_top, index, wall_bottom, 0xf0f0f0);
-	draw_line_color(&vars->img, index, wall_bottom, index, vars->mi.win_height, 0xd2b48c);
 }
 
-void setup(t_vars *vars)
+void render_wall(t_vars *vars, t_ray ray, t_wall wall, int tex_num)
 {
-	int x;
-	int y;
-
-	vars->pict_color = (int *)malloc(sizeof (int) * vars->mi.win_width * vars->mi.win_height);
-	vars->tex_color = (uint32_t *)malloc(sizeof(uint32_t) * TILE_SIZE * TILE_SIZE);
-	x = 0;
-	y = 0;
-	while(x < TILE_SIZE)
+	wall.y = 0;
+	while (wall.y < wall.wall_top)
 	{
-		while(y < TILE_SIZE)
-		{
-			// vars->tex_color[TILE_SIZE * ]
-		}
+		vars->img.data[(vars->mi.win_width * wall.y) + wall.index] = vars->mi.c_color;
+		wall.y += 1;
 	}
+	render_texture(vars, ray, &wall, tex_num);
+	while(wall.y < vars->mi.win_height)
+	{
+		vars->img.data[(vars->mi.win_width * wall.y) + wall.index] = vars->mi.f_color;
+		wall.y += 1;
+	}
+}
+
+void calc_wall_height(t_vars *vars, t_player p, t_ray ray, int index)
+{
+	t_wall wall;
+	int tex_num;
+
+	wall.index = index;
+	wall.prep_distance = ray.distance * cos(ray.ray_angle - p.angle);
+	wall.wall_height = (TILE_SIZE / wall.prep_distance) * \
+	(vars->mi.win_width / 2) / tan(FOV_ANGLE / 2);//projwallheight
+	wall.wall_top = (vars->mi.win_height / 2) - (int)(wall.wall_height / 2);//wall_top_pixel
+	wall.wall_top = wall.wall_top < 0 ? 0 : wall.wall_top;
+	wall.wall_bottom = (vars->mi.win_height / 2) + (wall.wall_height / 2);//wall_bottom_pixel
+	wall.wall_bottom = wall.wall_bottom > vars->mi.win_height ? \
+	vars->mi.win_height : wall.wall_bottom;
+	tex_num = wall_direction(vars, ray);
+	if(tex_num < 0)
+	{
+		return ;
+	}
+	render_wall(vars, ray, wall, tex_num);
 }
 
 
@@ -186,7 +271,8 @@ void render_all_rays(t_vars *vars)
 {
 	t_ray *rays;
 	int i;
-	// setup(vars);
+	// vars->p.x *= MINIMAP * TILE_SIZE;
+	// vars->p.y *= MINIMAP * TILE_SIZE;
 
 	if (!(rays = malloc(sizeof(t_ray) * vars->mi.win_width)))
 		return ;
@@ -194,11 +280,48 @@ void render_all_rays(t_vars *vars)
 	while (i < vars->mi.win_width)
 	{
 		rays[i] = cast_ray(vars, vars->p, vars->p.angle - FOV_ANGLE * (0.5 - i / (double)vars->mi.win_width));
-		render_wall(vars, vars->p, rays[i], i);
-		draw_line(&vars->img, vars->p.x * 0.3, vars->p.y * 0.3, rays[i].wall_hit_x * 0.3, rays[i].wall_hit_y * 0.3);
+		calc_wall_height(vars, vars->p, rays[i], i);
+		draw_line(&vars->img, vars->p.x , vars->p.y , rays[i].wall_hit_x , rays[i].wall_hit_y);
 		i++;
 	}
 	free(rays);
+}
+
+void texture_in (t_vars *vars, char *path, int tex_num, t_data *img)
+{
+		// printf("%d\n",tex_num);
+
+	img->img = mlx_xpm_file_to_image(vars->mlx, path, &img->img_width, &img->img_height);
+	if (img->img == 0)
+	{
+		printf("error1\n");
+		return ;
+	}
+	vars->tex.tex_width[tex_num] = img->img_width;
+	vars->tex.tex_height[tex_num] = img->img_height;
+	vars->tex.texture[tex_num] = (int*)malloc(sizeof(int) * img->img_width * img->img_height);
+    img->data = (int *)mlx_get_data_addr(img->img, &(img->bits_per_pixel), &(img->line_length), &(img->endian));
+	// printf("error2\n");
+	int y = 0;
+	while(y < img->img_height)
+	{
+		int x = 0;
+		while(x < img->img_width)
+		{
+			vars->tex.texture[tex_num][img->img_width * y + x] = img->data[(img->line_length / 4) * y + x];
+			x++;
+		}
+		y++;
+	}
+}
+
+void load_texture(t_vars *vars)
+{
+	// printf("%s\n",vars->mi.north_texture);
+	texture_in(vars, vars->mi.north_texture, 0, &vars->img);
+	texture_in(vars, vars->mi.south_texture, 1, &vars->img);
+	texture_in(vars, vars->mi.east_texture, 2, &vars->img);
+	texture_in(vars, vars->mi.west_texture, 3, &vars->img);
 }
 
 int main(int argc, char **argv)
@@ -220,23 +343,23 @@ int main(int argc, char **argv)
 		return (0);
 	int window_width = vars.mi.win_width;
 	int window_height = vars.mi.win_height;
-
-	vars.p.x = (vars.mi.player_x + 0.5) * TILE_SIZE;
-	vars.p.y = (vars.mi.player_y + 0.5) * TILE_SIZE;
+	//　＋　0.5しているのはピクセル単位の座標の中間点をとるため
+	vars.p.x = (vars.mi.player_x + (TILE_SIZE / 2 * 0.1)) * TILE_SIZE;
+	vars.p.y = (vars.mi.player_y + (TILE_SIZE / 2 * 0.1)) * TILE_SIZE;
 	vars.p.angle = vars.mi.player_angle;
+	printf ("x = %f, y = %f\n",vars.p.x, vars.p.y );
 
 	for (int i = 0; i < vars.mi.map_row + 2; i++)
 	{
 		printf("%s\n", vars.mi.map_prtd[i]);
 	}
-	printf("degree=%f\n", vars.mi.player_angle);
+	// printf("degree=%f\n", vars.mi.player_angle);
 
 	vars.mlx = mlx_init();
 	vars.win = mlx_new_window(vars.mlx, window_width, window_height, "mlx_project");
-	// vars->img.ptr = mlx_xpm_file_to_image(mlx, "../wall_s.xpm", &img.width, &img.height);
+	load_texture(&vars);
 	vars.img.img = mlx_new_image(vars.mlx, window_width, window_height);
-	vars.img.addr = mlx_get_data_addr(vars.img.img, &(vars.img.bits_per_pixel), &(vars.img.line_length), &(vars.img.endian));
-
+	vars.img.data = (int*)mlx_get_data_addr(vars.img.img, &(vars.img.bits_per_pixel), &(vars.img.line_length), &(vars.img.endian));
 	mlx_hook(vars.win, 2, 1L<<0, &key_pressed, &vars);
 	mlx_hook(vars.win, 3, 1L<<1, &key_released, &vars);
 	mlx_loop_hook(vars.mlx, render, &vars);

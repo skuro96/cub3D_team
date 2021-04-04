@@ -4,7 +4,7 @@ void	draw_pixel(t_data *data, int x, int y, int color)
 {
     char    *dst;
 
-    dst = data->addr + (y * data->line_length + x * (data->bits_per_pixel / 8));
+    dst = (char *)data->data + (y * data->line_length + x * (data->bits_per_pixel / 8));
     *(unsigned int*)dst = color;
 }
 
@@ -23,7 +23,7 @@ void draw_line(t_data *data, int x0, int y0, int x1, int y1)
 	i = 0;
 	while (i < (int)len)
 	{
-		draw_pixel(data, x0 + (int)(dx * i), y0 + (int)(dy * i), 0xff0000);
+		draw_pixel(data, x0 + (int)(dx * i) , y0 + (int)(dy * i) , 0xff0000);
 		i++;
 	}
 }
@@ -89,7 +89,9 @@ void draw_player(t_data *data, t_player p)
 	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + 0.5*M_PI), p.y + 20 * sin(p.angle + 0.5*M_PI));
 	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + M_PI), p.y + 20 * sin(p.angle + M_PI));
 	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + 1.5*M_PI), p.y + 20 * sin(p.angle + 1.5*M_PI));
-	draw_pixel(data, p.x * 0.3, p.y * 0.3, 0x00ff00);
+
+	// printf("p.x = %f p.y = %f\n", p.x, p.y);
+	draw_pixel(data, p.x /* TILE_SIZE * MINIMAP*/, p.y /* TILE_SIZE * MINIMAP*/, 0x00ff00);
 }
 
 void draw_map(t_data *data, t_mapinfo mi)
@@ -106,7 +108,7 @@ void draw_map(t_data *data, t_mapinfo mi)
 		while (j < ft_strlen(map[i]))
 		{
 			if (map[i][j] == '1')
-				draw_square(data, j * TILE_SIZE * 0.3, i * TILE_SIZE * 0.3, TILE_SIZE * 0.3, 0);
+				draw_square(data, j * TILE_SIZE /* MINIMAP*/, i * TILE_SIZE /* MINIMAP*/, TILE_SIZE /* MINIMAP*/, 0xffffff);
 			j++;
 		}
 		i++;
@@ -127,7 +129,7 @@ void redraw(t_vars *vars)
 
 bool has_wall(t_vars vars, int x, int y)
 {
-	printf("(x, y): (%d, %d)\n", x, y);
+	// printf("(x, y): (%d, %d)\n", x, y);
 	if ((x < 0 || vars.mi.win_width < x) || (y < 0 || vars.mi.win_height < y))
 		return (true);
 	return (vars.mi.map[y / TILE_SIZE][x / TILE_SIZE] == '1' || vars.mi.map[y / TILE_SIZE][x / TILE_SIZE] == ' ');
@@ -190,10 +192,11 @@ int render(t_vars *vars)
 	vars->p.angle = norm_angle(vars->p.angle + vars->p.turn_direction * vars->p.rotation_speed);
 	double step_fb = (double)vars->p.walk_direction * (double)vars->p.move_speed;
 	double step_lr = (double)vars->p.lr_direction * (double)vars->p.move_speed;
-	double next_x = (double)vars->p.x + step_fb * cos(vars->p.angle) - step_lr * sin(vars->p.angle);
-	double next_y = (double)vars->p.y + step_fb * sin(vars->p.angle) + step_lr * cos(vars->p.angle);
+	double next_x = ((double)vars->p.x + step_fb * cos(vars->p.angle) - step_lr * sin(vars->p.angle));
+	double next_y = ((double)vars->p.y + step_fb * sin(vars->p.angle) + step_lr * cos(vars->p.angle));
 
-	if (!has_wall(*vars, next_x, next_y))
+	// printf("check x%f y%f\n",next_x, next_y);
+	if (!has_wall(*vars, next_x , next_y  ))
 	{
 		vars->p.x = next_x;
 		vars->p.y = next_y;

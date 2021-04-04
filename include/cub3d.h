@@ -7,7 +7,8 @@
 #include <stdbool.h>
 #include <math.h>
 
-#define TILE_SIZE 64
+#define TILE_SIZE 10
+#define MINIMAP 0.1
 
 typedef struct	s_mapinfo
 {
@@ -31,6 +32,26 @@ typedef struct	s_mapinfo
 	char **map_prtd;
 }				t_mapinfo;
 
+typedef struct 	s_tmp
+{
+	bool is_facing_down;
+	bool is_facing_up;
+	bool is_facing_left;
+	bool is_facing_right;
+	bool hit_vert;
+	bool hit_horz;
+	double x_intercept;
+	double y_intercept;
+	double x_step;
+	double y_step;
+	double horz_x;
+	double horz_y;
+	double vert_x;
+	double vert_y;
+	double ray_angle;
+
+}				t_tmp;
+
 typedef struct	s_player
 {
 	double x;
@@ -44,13 +65,26 @@ typedef struct	s_player
 	double rotation_speed;
 }				t_player;
 
+typedef struct	s_wall
+{
+	double	prep_distance;
+	double	wall_height;
+	int		wall_top;
+	int		wall_bottom;
+	int		index;
+	int		y;
+}				t_wall;
+
 typedef struct	s_data {
     void        *img;
+	int			*data;
     char        *addr;
 	void		*ptr;
     int         bits_per_pixel;
     int         line_length;
     int         endian;
+	int			img_width;
+	int			img_height;
 }               t_data;
 
 typedef struct	s_ray
@@ -60,14 +94,24 @@ typedef struct	s_ray
 	double wall_hit_y;
 	double distance;
 	bool hit_vertical;
+	bool face_down;
+	bool face_up;
+	bool face_right;
+	bool face_left;
 }				t_ray;
+
+typedef struct	s_texture{
+	int		*texture[5];
+	int		tex_width[5];
+	int		tex_height[5];
+}				t_texture;
 
 typedef struct	s_vars
 {
 	void *mlx;
 	void *win;
-	int *pict_color;
-	uint32_t *tex_color;
+	t_tmp tmp;
+	t_texture tex;
 	t_mapinfo mi;
 	t_player p;
 	t_data img;
