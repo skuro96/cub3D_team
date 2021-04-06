@@ -118,12 +118,17 @@ void draw_map(t_data *data, t_mapinfo mi)
 void redraw(t_vars *vars)
 {
 	draw_rect(&vars->img, 0, 0, 500, 500, 0); // black
-	// draw_line(&vars->img, vars->p.x, vars->p.y, vars->ray.wall_hit_x, vars->ray.wall_hit_y);
-	// clear_color_buffer(vars);
-	// render_color
+
+	// printf("test %d\n",vars->mi.sprite);
 	render_all_rays(vars);
+	process_sprite(vars);
 	draw_map(&vars->img, vars->mi);
 	draw_player(&vars->img, vars->p);
+	// for(int i = 0; i < 2; i++)
+	// {
+	// 	printf("x%d = %f\n", i, vars->sprite[i].x);
+	// 	printf("y%d = %f\n", i, vars->sprite[i].y);
+	// }
 	mlx_put_image_to_window(vars->mlx, vars->win, vars->img.img, 0, 0);
 }
 

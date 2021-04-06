@@ -4,11 +4,12 @@
 #include "../minilibx/mlx.h"
 #include "libft.h"
 #include "get_next_line.h"
+#include <float.h>
 #include <stdbool.h>
 #include <math.h>
 
 #define TILE_SIZE 10
-#define MINIMAP 0.1
+#define FOV_ANGLE (60 * (M_PI / 180))
 
 typedef struct	s_mapinfo
 {
@@ -24,6 +25,7 @@ typedef struct	s_mapinfo
     int map_col;
 	int f_color;
 	int c_color;
+	int sprite;
 
 	int player_x;
 	int player_y;
@@ -106,10 +108,20 @@ typedef struct	s_texture{
 	int		tex_height[5];
 }				t_texture;
 
+typedef struct	s_sprite{
+	double x;
+	double y;
+	double distance;
+	double angle;
+	bool flag;
+	bool visible;
+}				t_sprite;
+
 typedef struct	s_vars
 {
 	void *mlx;
 	void *win;
+	t_sprite *sprites;
 	t_tmp tmp;
 	t_texture tex;
 	t_mapinfo mi;
@@ -135,4 +147,9 @@ double norm_angle(double angle);
 
 t_ray cast_ray(t_vars *vars, t_player p, double ray_angle /*, int strip_id */);
 void render_all_rays(t_vars *vars);
+
+void process_sprite(t_vars *vars);
+double distance(double x1, double y1, double x2, double y2);//マクロ？
+
+
 #endif

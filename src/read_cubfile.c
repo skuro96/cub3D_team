@@ -28,6 +28,7 @@ void map_init(t_mapinfo *mi)
 	mi->map_col = 0;
 	mi->f_color = -1;
 	mi->c_color = -1;
+	mi->sprite = 0;
 
 	mi->player_x = -1;
 	mi->player_y = -1;
@@ -232,9 +233,15 @@ bool search_map(t_mapinfo *mi, int x, int y)
 	char **map;
 
 	map = mi->map_prtd;
-	if (map[y][x] == '1' || map[y][x] == '*')
+	if (map[y][x] == '1' || map[y][x] == '*' || map[y][x] == 'p')
 		return (true);
-	map[y][x] = '*';
+	if (map[y][x] == '2')
+	{
+		mi->sprite += 1;
+		map[y][x] = 'p';
+	}
+	else
+		map[y][x] = '*';
 	if (map[y][x + 1] == '#' || map[y][x + 1] == ' ')
 		return (false);
 	if (map[y][x - 1] == '#' || map[y][x - 1] == ' ')

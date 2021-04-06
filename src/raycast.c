@@ -1,6 +1,5 @@
 #include "cub3d.h"
-#include <float.h>
-#define FOV_ANGLE (60 * M_PI / 180)
+
 
 double distance(double x1, double y1, double x2, double y2)//マクロ？
 {
@@ -30,6 +29,30 @@ void init_tmp(t_vars *vars)
 	vars->tmp.vert_x = 0;
 	vars->tmp.vert_y = 0;
 }
+
+// void has_sprite(t_vars *vars, int x, int y)
+// {
+// 	int map_x;
+// 	int map_y;
+// 	static bool flag;
+
+// 	map_x = x / TILE_SIZE;
+// 	map_y = y / TILE_SIZE;
+// 	if ((x < 0 || vars->mi.win_width < x) || (y < 0 || vars->mi.win_height < y))
+// 		return ;
+// 	if (vars->mi.map[map_y][map_x] == '2')
+// 	{
+// 		if (vars->mi.sprite > 0)
+// 		{
+// 			vars->sprites[vars->mi.sprite - 1].x = ((double)map_x + 0.5) * TILE_SIZE;
+// 			vars->sprites[vars->mi.sprite - 1].y = ((double)map_y + 0.5) * TILE_SIZE;
+// 			if (vars->sprites[vars->mi.sprite - 1].x != vars->sprites[vars->mi.sprite].x || \
+// 			vars->sprites[vars->mi.sprite - 1].y != vars->sprites[vars->mi.sprite].y)
+// 				vars->mi.sprite -= 1;
+// 			flag = true;
+// 		}
+// 	}
+// }
 
 void calc_step(t_vars *vars, t_player p, int horz)
 {
@@ -67,7 +90,7 @@ void vert_ray_part(t_vars *vars, t_player p)
 	{
 		x_to_check = next_vert_x + (vars->tmp.is_facing_left ? -1 : 0);
 		y_to_check = next_vert_y;
-
+		// has_sprite(vars, x_to_check, y_to_check);
 		if (has_wall(*vars, x_to_check, y_to_check))
 		{
 			vars->tmp.vert_x = next_vert_x;
@@ -96,7 +119,7 @@ void step_by_step_rayhorz(t_vars *vars, int horz)
 	{
 		x_to_check = next_horz_x;
 		y_to_check = next_horz_y + (vars->tmp.is_facing_up ? -1 : 0);
-
+		// has_sprite(vars, x_to_check, y_to_check);
 		if (has_wall(*vars, x_to_check, y_to_check))
 		{
 			vars->tmp.horz_x = next_horz_x;
@@ -138,9 +161,6 @@ t_ray calc_wall_distance(t_vars *vars, t_player p)
 	}
 	ray.face_up = vars->tmp.is_facing_up;
 	ray.face_down = vars->tmp.is_facing_down;
-	// ray.face_right = is_facing_right;使う？？？？
-	// ray.face_left = is_facing_left;使う？？？？
-	// printf("(%f, %f)\n", ray.wall_hit_x, ray.wall_hit_y);
 	return (ray);
 }
 
@@ -211,7 +231,6 @@ void render_texture(t_vars *vars, t_ray ray, t_wall *wall, int tex_num)
 	double width;
 
 	width = (double)vars->tex.tex_width[tex_num] / (double)TILE_SIZE;
-	printf("%f\n",width);
 	tex_off_x = ray.hit_vertical ? \
 	(int)(fmod(ray.wall_hit_y , (double)TILE_SIZE) * width) : \
 	(int)(fmod(ray.wall_hit_x , (double)TILE_SIZE) * width); 
@@ -269,22 +288,21 @@ void calc_wall_height(t_vars *vars, t_player p, t_ray ray, int index)
 
 void render_all_rays(t_vars *vars)
 {
-	t_ray *rays;
 	int i;
 	// vars->p.x *= MINIMAP * TILE_SIZE;
 	// vars->p.y *= MINIMAP * TILE_SIZE;
 
-	if (!(rays = malloc(sizeof(t_ray) * vars->mi.win_width)))
+	if (!(vars->rays = malloc(sizeof(t_ray) * vars->mi.win_width)))
 		return ;
 	i = 0;
 	while (i < vars->mi.win_width)
 	{
-		rays[i] = cast_ray(vars, vars->p, vars->p.angle - FOV_ANGLE * (0.5 - i / (double)vars->mi.win_width));
-		calc_wall_height(vars, vars->p, rays[i], i);
-		draw_line(&vars->img, vars->p.x , vars->p.y , rays[i].wall_hit_x , rays[i].wall_hit_y);
+		vars->rays[i] = cast_ray(vars, vars->p, vars->p.angle - FOV_ANGLE * (0.5 - i / (double)vars->mi.win_width));
+		calc_wall_height(vars, vars->p, vars->rays[i], i);
+		draw_line(&vars->img, vars->p.x , vars->p.y , vars->rays[i].wall_hit_x , vars->rays[i].wall_hit_y);
 		i++;
 	}
-	free(rays);
+	// free(rays);
 }
 
 void texture_in (t_vars *vars, char *path, int tex_num, t_data *img)
@@ -322,6 +340,32 @@ void load_texture(t_vars *vars)
 	texture_in(vars, vars->mi.south_texture, 1, &vars->img);
 	texture_in(vars, vars->mi.east_texture, 2, &vars->img);
 	texture_in(vars, vars->mi.west_texture, 3, &vars->img);
+	texture_in(vars, vars->mi.sprite_texture, 4, &vars->img);
+}
+
+void get_sprite(t_vars *vars)
+{
+	int x;
+	int y;
+	int i;
+
+	i = 0;
+	y = 0;
+	while (y < vars->mi.map_row + 1)
+	{
+		x = 0;
+		while (x + 1 < vars->mi.map_col + 1)
+		{
+			if (vars->mi.map_prtd[y][x] == 'p')
+			{
+				vars->sprites[i].x = ((x - 1) + 0.5) * TILE_SIZE;
+				vars->sprites[i].y = ((y - 1) + 0.5) * TILE_SIZE;
+				i++;
+			}
+			x++;
+		}
+		y++;
+	}
 }
 
 int main(int argc, char **argv)
@@ -341,6 +385,17 @@ int main(int argc, char **argv)
 	map_init(&vars.mi);
 	if (!set_info(argv[1], &vars.mi))
 		return (0);
+	if (vars.mi.sprite > 0)
+	{
+		if(!(vars.sprites = malloc(sizeof(t_sprite) * vars.mi.sprite)))
+			exit(0);
+	}
+	printf ("sprite = %d\n",vars.mi.sprite);
+	get_sprite(&vars);
+	for (int i = 0; i < vars.mi.sprite; i++)
+	{
+		printf("x[%d] = %f, y[%d] = %f\n", i, vars.sprites[i].x, i, vars.sprites[i].y);
+	}
 	int window_width = vars.mi.win_width;
 	int window_height = vars.mi.win_height;
 	//　＋　0.5しているのはピクセル単位の座標の中間点をとるため
