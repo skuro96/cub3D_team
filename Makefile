@@ -2,7 +2,7 @@
 # 		gcc src/*.c -I include
 
 all:
-		gcc -g -L minilibx -lmlx -framework OpenGL -framework AppKit src/*.c -I include
+		gcc -g -Wall -Werror -Wextra -L minilibx -lmlx -framework OpenGL -framework AppKit src/*.c -I include
 		./a.out map/test01.cub
 
 wall:

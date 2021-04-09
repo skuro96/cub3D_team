@@ -106,7 +106,7 @@ void vert_ray_part(t_vars *vars, t_player p)
 	}
 }
 
-void step_by_step_rayhorz(t_vars *vars, int horz)
+void step_by_step_rayhorz(t_vars *vars)/*, int horz)*/
 {
 	double next_horz_x;
 	double next_horz_y;
@@ -172,7 +172,7 @@ t_ray cast_ray(t_vars *vars, t_player p, double ray_angle /*, int strip_id */)
 	face_orientation(vars, vars->tmp.ray_angle);
 	init_tmp(vars);
 	calc_step(vars, p, 1);
-	step_by_step_rayhorz(vars, 1);
+	step_by_step_rayhorz(vars);/*, 1);*/
 	vert_ray_part(vars, p);
 	ray = calc_wall_distance(vars, p);
 	return (ray);
@@ -368,6 +368,12 @@ void get_sprite(t_vars *vars)
 	}
 }
 
+int win_destroy(t_vars *vars)
+{
+	mlx_destroy_window(vars->mlx, vars->win);
+	exit(0);
+}
+
 int main(int argc, char **argv)
 {
 	t_vars vars;
@@ -417,6 +423,7 @@ int main(int argc, char **argv)
 	vars.img.data = (int*)mlx_get_data_addr(vars.img.img, &(vars.img.bits_per_pixel), &(vars.img.line_length), &(vars.img.endian));
 	mlx_hook(vars.win, 2, 1L<<0, &key_pressed, &vars);
 	mlx_hook(vars.win, 3, 1L<<1, &key_released, &vars);
+	mlx_hook(vars.win, 17, 1L<<17, &win_destroy, &vars);
 	mlx_loop_hook(vars.mlx, render, &vars);
 	mlx_loop(vars.mlx);
 }

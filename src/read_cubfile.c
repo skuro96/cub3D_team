@@ -35,6 +35,24 @@ void map_init(t_mapinfo *mi)
 	mi->player_angle = 0;
 }
 
+bool win_resolution(t_mapinfo *mi, char **buf)
+{
+	mi->win_width = ft_atoi(buf[1]);
+	mi->win_height = ft_atoi(buf[2]);
+	if (mi->win_width < 0 || mi->win_height < 0)
+	{
+		return (false);
+	}
+	if (mi->win_width > 1920 || mi->win_height > 1080)
+	{
+		if (mi->win_width > 1920)
+			mi->win_width = 1920;
+		if (mi->win_height > 1080)
+			mi->win_height = 1080;
+	}
+	return (true);
+}
+
 bool set_resolution(char *line, t_mapinfo *mi)
 {
 	char **buf;
@@ -43,7 +61,7 @@ bool set_resolution(char *line, t_mapinfo *mi)
 		return (false);
 	if (!buf[0] || !buf[1] || !buf[2] || buf[3])
 		return (freeturn_buf(buf, false));
-	if (ft_strcmp(buf[0], "R") == 0 && (mi->win_width = ft_atoi(buf[1])) > 0 && (mi->win_height = ft_atoi(buf[2])) > 0)
+	if (ft_strcmp(buf[0], "R") == 0 && win_resolution(mi, buf))
 		return (freeturn_buf(buf, true));
 	return (freeturn_buf(buf, false));
 }
@@ -151,7 +169,7 @@ bool set_map(char *line, t_mapinfo *mi)
 	if (!(new[i] = ft_strdup(line)))
 		return (freei_return(new, i, false));
 	mi->map = new;
-	mi->map_col = mi->map_col < ft_strlen(new[i]) ? ft_strlen(new[i]) : mi->map_col;
+	mi->map_col = mi->map_col < (int)ft_strlen(new[i]) ? ft_strlen(new[i]) : mi->map_col;
 	mi->map_row++;
 	return (freei_return(old, mi->map_row - 1, true));
 }
@@ -217,7 +235,7 @@ bool protect_map(char **map, t_mapinfo *mi)
 			if(i == 0 || i == mi->map_row + 1|| j == 0 || j == mi->map_col + 1)
 				pro_map[i][j] = '#';
 			else
-				pro_map[i][j] = (j > ft_strlen(map[i - 1])) ? ' ' : map[i - 1][j - 1];
+				pro_map[i][j] = (j > (int)ft_strlen(map[i - 1])) ? ' ' : map[i - 1][j - 1];
 			j++;
 		}
 		pro_map[i][j] = '\0';

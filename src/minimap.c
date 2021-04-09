@@ -105,7 +105,7 @@ void draw_map(t_data *data, t_mapinfo mi)
 	while (i < mi.map_row)
 	{
 		j = 0;
-		while (j < ft_strlen(map[i]))
+		while (j < (int)ft_strlen(map[i]))
 		{
 			if (map[i][j] == '1')
 				draw_square(data, j * TILE_SIZE /* MINIMAP*/, i * TILE_SIZE /* MINIMAP*/, TILE_SIZE /* MINIMAP*/, 0xffffff);
@@ -134,10 +134,14 @@ void redraw(t_vars *vars)
 
 bool has_wall(t_vars vars, int x, int y)
 {
-	// printf("(x, y): (%d, %d)\n", x, y);
+	int		map_x;
+	int		map_y;
+	
+	map_x = x / TILE_SIZE;
+	map_y = y / TILE_SIZE;
 	if ((x < 0 || vars.mi.win_width < x) || (y < 0 || vars.mi.win_height < y))
 		return (true);
-	return (vars.mi.map[y / TILE_SIZE][x / TILE_SIZE] == '1' || vars.mi.map[y / TILE_SIZE][x / TILE_SIZE] == ' ');
+	return (vars.mi.map[map_y][map_x] == '1' || vars.mi.map[map_y][map_x] == ' ');
 }
 
 // ubuntu
@@ -194,21 +198,25 @@ double norm_angle(double angle)
 
 int render(t_vars *vars)
 {
-	vars->p.angle = norm_angle(vars->p.angle + vars->p.turn_direction * vars->p.rotation_speed);
-	double step_fb = (double)vars->p.walk_direction * (double)vars->p.move_speed;
-	double step_lr = (double)vars->p.lr_direction * (double)vars->p.move_speed;
-	double next_x = ((double)vars->p.x + step_fb * cos(vars->p.angle) - step_lr * sin(vars->p.angle));
-	double next_y = ((double)vars->p.y + step_fb * sin(vars->p.angle) + step_lr * cos(vars->p.angle));
+	double step_fb;
+	double step_lr;
+	double next_x;
+	double next_y;
 
+	step_fb = (double)vars->p.walk_direction * (double)vars->p.move_speed;
+	step_lr = (double)vars->p.lr_direction * (double)vars->p.move_speed;
+	next_x = ((double)vars->p.x + step_fb * cos(vars->p.angle) - step_lr * \
+	sin(vars->p.angle));
+	next_y = ((double)vars->p.y + step_fb * sin(vars->p.angle) + step_lr * \
+	cos(vars->p.angle));
+	vars->p.angle = norm_angle(vars->p.angle + vars->p.turn_direction * \
+	vars->p.rotation_speed);
 	// printf("check x%f y%f\n",next_x, next_y);
 	if (!has_wall(*vars, next_x , next_y  ))
 	{
 		vars->p.x = next_x;
 		vars->p.y = next_y;
 	}
-
-	// vars->ray = cast_ray(vars, vars->p, vars->p.angle);
-	// printf("distance = %f\n", vars->ray.distance);
 	redraw(vars);
 	return (1);
 }

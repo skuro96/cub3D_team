@@ -1,24 +1,5 @@
 #include "cub3d.h"
 
-typedef struct	s_tmp_sprite
-{
-	double	sprite_height;
-	double	sprite_width;
-	double	sprite_top_y;
-	double	sprite_bottom_y;
-	double	sprite_angle;
-	double	sprite_screen_posx;
-	double	sprite_left_x;
-	double	sprite_right_x;
-	double	texel_width;
-	double	prep_distance;
-    int		num_visible_sprites;
-	int		texture_offset_x;
-	int		texture_offset_y;
-	int		distance_from_top;
-} 				t_tmp_sprite;
-
-
 double calc_sprite_angle(t_vars *vars, int i)
 {
     double angle;
@@ -163,12 +144,13 @@ void draw_sprite(t_vars *vars, t_tmp_sprite *t_spr)
 void render_sprite(t_vars *vars, t_sprite *visible_sprites, t_tmp_sprite t_spr, \
 double distance_proj_plane)
 {
+	t_sprite sprite;
 	int i;
 
 	i = 0;
 	while(i < t_spr.num_visible_sprites)
 	{
-		t_sprite sprite = visible_sprites[i];
+		sprite = visible_sprites[i];
 		calc_sprite_pos(vars, sprite, &t_spr, distance_proj_plane);
 		// // Query the width and height of the texture
 		// Loop all the x value 
@@ -181,7 +163,7 @@ void process_sprite(t_vars *vars)
 {
     t_sprite visible_sprites[vars->mi.sprite];
 	t_tmp_sprite t_spr;
-	t_sprite sprite;
+	// t_sprite sprite;
 	double distance_proj_plane;
 
 	distance_proj_plane = (vars->mi.win_width / 2) / tan(FOV_ANGLE / 2);

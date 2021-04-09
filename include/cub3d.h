@@ -11,6 +11,24 @@
 #define TILE_SIZE 10
 #define FOV_ANGLE (60 * (M_PI / 180))
 
+typedef struct	s_tmp_sprite
+{
+	double	sprite_height;
+	double	sprite_width;
+	double	sprite_top_y;
+	double	sprite_bottom_y;
+	double	sprite_angle;
+	double	sprite_screen_posx;
+	double	sprite_left_x;
+	double	sprite_right_x;
+	double	texel_width;
+	double	prep_distance;
+    int		num_visible_sprites;
+	int		texture_offset_x;
+	int		texture_offset_y;
+	int		distance_from_top;
+} 				t_tmp_sprite;
+
 typedef struct	s_mapinfo
 {
 	int win_height;
@@ -149,7 +167,8 @@ t_ray cast_ray(t_vars *vars, t_player p, double ray_angle /*, int strip_id */);
 void render_all_rays(t_vars *vars);
 
 void process_sprite(t_vars *vars);
-double distance(double x1, double y1, double x2, double y2);//マクロ？
+double distance(double x1, double y1, double x2, double y2);
+int win_destroy(t_vars *vars);
 
 
 #endif
