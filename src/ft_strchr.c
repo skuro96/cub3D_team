@@ -1,8 +1,8 @@
 #include "libft.h"
 
-char *ft_strchr(char const *str, int c)
+char	*ft_strchr(char const *str, int c)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	while (str[i])

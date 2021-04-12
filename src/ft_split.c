@@ -1,6 +1,5 @@
 #include"libft.h"
 
-
 static size_t	count_strs(const char *str, char c)
 {
 	size_t	i;
@@ -24,9 +23,9 @@ static size_t	count_strs(const char *str, char c)
 	return (cnt);
 }
 
-static void		my_strcpy(char *dest, const char *src, size_t len)
+static void	my_strcpy(char *dest, const char *src, size_t len)
 {
-	size_t i;
+	size_t	i;
 
 	i = 0;
 	while (i < len - 1)
@@ -37,12 +36,12 @@ static void		my_strcpy(char *dest, const char *src, size_t len)
 	dest[i] = '\0';
 }
 
-static char		**all_free(char **dest, int n)
+static char	**all_free(char **dest, t_size size)
 {
-	int i;
+	int	i;
 
 	i = 0;
-	while (i < n)
+	while (i < size.str_nbr)
 	{
 		free(dest[i]);
 		i++;
@@ -51,30 +50,30 @@ static char		**all_free(char **dest, int n)
 	return (NULL);
 }
 
-char			**ft_split(char const *s, char c)
+char	**ft_split(char const *s, char c)
 {
-	size_t	i;
-	size_t	len;
-	size_t	str_nbr;
+	t_size	size;
 	char	**dest;
 
-	if (!s || !(dest = malloc(sizeof(char*) * (count_strs(s, c) + 1))))
+	dest = malloc(sizeof(char *) * (count_strs(s, c) + 1));
+	if (!s || !dest)
 		return (NULL);
-	i = 0;
-	str_nbr = 0;
-	while (s[i] != '\0' && str_nbr < count_strs(s, c))
+	size.i = 0;
+	size.str_nbr = 0;
+	while (s[size.i] != '\0' && size.str_nbr < count_strs(s, c))
 	{
-		while (s[i] != '\0' && s[i] == c)
-			i++;
-		len = 0;
-		while (s[i + len] != '\0' && s[i + len] != c)
-			len++;
-		if (!(dest[str_nbr] = malloc(sizeof(char) * (len + 1))))
-			return (all_free(dest, str_nbr));
-		my_strcpy(dest[str_nbr], &s[i], len + 1);
-		str_nbr++;
-		i += len;
+		while (s[size.i] != '\0' && s[size.i] == c)
+			size.i++;
+		size.len = 0;
+		while (s[size.i + size.len] != '\0' && s[size.i + size.len] != c)
+			size.len++;
+		dest[size.str_nbr] = malloc(sizeof(char) * (size.len + 1));
+		if (!dest[size.str_nbr])
+			return (all_free(dest, size));
+		my_strcpy(dest[size.str_nbr], &s[size.i], size.len + 1);
+		size.str_nbr++;
+		size.i += size.len;
 	}
-	dest[str_nbr] = (NULL);
+	dest[size.str_nbr] = (NULL);
 	return (dest);
 }

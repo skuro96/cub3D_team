@@ -1,8 +1,8 @@
 #include "libft.h"
 
-int ft_strcmp(char const *s1, char const *s2)
+int	ft_strcmp(char const *s1, char const *s2)
 {
-	int i;
+	int	i;
 
 	if (!s1 || !s2)
 		return (-1);

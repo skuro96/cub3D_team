@@ -3,7 +3,7 @@
 // 99999999999999 でオーバーフロー
 // 時間あるとき直せよ
 
-int		ft_atoi(const char *str)
+int	ft_atoi(const char *str)
 {
 	int				sign;
 	unsigned long	result;

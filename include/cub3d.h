@@ -7,6 +7,7 @@
 #include <float.h>
 #include <stdbool.h>
 #include <math.h>
+#include <stdint.h>
 
 #define TILE_SIZE 10
 #define FOV_ANGLE (60 * (M_PI / 180))
@@ -147,6 +148,16 @@ typedef struct	s_vars
 	t_data img;
 	t_ray *rays;
 }				t_vars;
+
+typedef struct	s_tmp_step
+{
+	double	next_horz_x;
+	double	next_horz_y;
+	double	next_vert_x;
+	double	next_vert_y;
+	double	x_to_check;
+	double	y_to_check;
+}				t_tmp_step;
 
 
 void map_init(t_mapinfo *mi);

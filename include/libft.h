@@ -6,6 +6,13 @@
 # include <unistd.h>
 # include <limits.h>
 
+typedef struct s_size
+{
+	size_t	i;
+	size_t	len;
+	size_t	str_nbr;
+}				t_size;
+
 int		ft_strcmp(char const *s1, char const *s2);
 char				*ft_strchr(const char *s, int c);
 

@@ -2,13 +2,14 @@
 
 void	draw_pixel(t_data *data, int x, int y, int color)
 {
-    char    *dst;
+	char	*dst;
 
-    dst = (char *)data->data + (y * data->line_length + x * (data->bits_per_pixel / 8));
-    *(unsigned int*)dst = color;
+	dst = (char *)data->data + (y * data->line_length + x * \
+	(data->bits_per_pixel / 8));
+	*(unsigned int *)dst = color;
 }
 
-void draw_line(t_data *data, int x0, int y0, int x1, int y1)
+void	draw_line(t_data *data, int x0, int y0, int x1, int y1)
 {
 	double dx;
 	double dy;
@@ -28,28 +29,10 @@ void draw_line(t_data *data, int x0, int y0, int x1, int y1)
 	}
 }
 
-void draw_rect(t_data *data, int start_x, int start_y, int end_x, int end_y, int color)
+void	draw_square(t_data *data, int x, int y, int size, int color)
 {
-	int i;
-	int j;
-
-	i = start_y;
-	while (i < end_y)
-	{
-		j = start_x;
-		while (j < end_x)
-		{
-			draw_pixel(data, j, i, color);
-			j++;
-		}
-		i++;
-	}
-}
-
-void draw_square(t_data *data, int x, int y, int size, int color)
-{
-	int i;
-	int j;
+	int	i;
+	int	j;
 
 	i = 0;
 	while (i < size)
@@ -64,7 +47,7 @@ void draw_square(t_data *data, int x, int y, int size, int color)
 	}
 }
 
-void draw_circle(t_data *data, int x, int y, int r, int color)
+void	draw_circle(t_data *data, int x, int y, int r, int color)
 {
 	int i = y - r;
 
@@ -81,7 +64,7 @@ void draw_circle(t_data *data, int x, int y, int r, int color)
 	}
 }
 
-void draw_player(t_data *data, t_player p)
+void	draw_player(t_data *data, t_player p)
 {
 	// printf("(%f, %f): %f\n", p.x, p.y, p.angle);
 	// int len = TILE_SIZE * 5;
@@ -91,10 +74,10 @@ void draw_player(t_data *data, t_player p)
 	// draw_line(data, p.x, p.y, p.x + 20 * cos(p.angle + 1.5*M_PI), p.y + 20 * sin(p.angle + 1.5*M_PI));
 
 	// printf("p.x = %f p.y = %f\n", p.x, p.y);
-	draw_pixel(data, p.x /* TILE_SIZE * MINIMAP*/, p.y /* TILE_SIZE * MINIMAP*/, 0x00ff00);
+	draw_pixel(data, p.x, p.y, 0x00ff00);
 }
 
-void draw_map(t_data *data, t_mapinfo mi)
+void	draw_map(t_data *data, t_mapinfo mi)
 {
 	int i;
 	int j;
@@ -108,16 +91,33 @@ void draw_map(t_data *data, t_mapinfo mi)
 		while (j < (int)ft_strlen(map[i]))
 		{
 			if (map[i][j] == '1')
-				draw_square(data, j * TILE_SIZE /* MINIMAP*/, i * TILE_SIZE /* MINIMAP*/, TILE_SIZE /* MINIMAP*/, 0xffffff);
+				draw_square(data, j * TILE_SIZE, i * TILE_SIZE, TILE_SIZE, 0xffffff);
 			j++;
 		}
 		i++;
 	}
 }
 
-void redraw(t_vars *vars)
+void	draw_rect(t_vars *vars)
 {
-	draw_rect(&vars->img, 0, 0, 500, 500, 0); // black
+	int	i;
+	int	j;
+
+	i = 0;
+	while (i < vars->mi.win_height)
+	{
+		j = 0;
+		while(j < vars->mi.win_width)
+		{
+			vars->img.data[i + j] = 0;
+			j++;
+		}
+		i++;
+	}
+}
+void	redraw(t_vars *vars)
+{
+	draw_rect(vars); // black
 
 	// printf("test %d\n",vars->mi.sprite);
 	render_all_rays(vars);
@@ -132,7 +132,7 @@ void redraw(t_vars *vars)
 	mlx_put_image_to_window(vars->mlx, vars->win, vars->img.img, 0, 0);
 }
 
-bool has_wall(t_vars vars, int x, int y)
+bool	has_wall(t_vars vars, int x, int y)
 {
 	int		map_x;
 	int		map_y;
@@ -146,7 +146,7 @@ bool has_wall(t_vars vars, int x, int y)
 
 // ubuntu
 // A:97, W:119, S:115, D:100, <-:65361, ->:65363
-int key_pressed(int keycode, t_vars *vars)
+int	key_pressed(int keycode, t_vars *vars)
 {
 	// printf("key=%d\n", keycode);
 	if (keycode == 53)
@@ -154,7 +154,6 @@ int key_pressed(int keycode, t_vars *vars)
 		mlx_destroy_window(vars->mlx, vars->win);
 		exit(0);
 	}
-
 	if (keycode == 1) // S
 		vars->p.walk_direction = -1;
 	if (keycode == 13) // W
@@ -171,7 +170,7 @@ int key_pressed(int keycode, t_vars *vars)
 	return (1);
 }
 
-int key_released(int keycode, t_vars *vars)
+int	key_released(int keycode, t_vars *vars)
 {
 	if (keycode == 1) // S
 		vars->p.walk_direction = 0;
@@ -188,7 +187,7 @@ int key_released(int keycode, t_vars *vars)
 	return (1);
 }
 
-double norm_angle(double angle)
+double	norm_angle(double angle)
 {
 	angle = fmod(angle, 2 * M_PI);
 	if (angle < 0)
@@ -196,12 +195,12 @@ double norm_angle(double angle)
 	return (angle);
 }
 
-int render(t_vars *vars)
+int	render(t_vars *vars)
 {
-	double step_fb;
-	double step_lr;
-	double next_x;
-	double next_y;
+	double	step_fb;
+	double	step_lr;
+	double	next_x;
+	double	next_y;
 
 	step_fb = (double)vars->p.walk_direction * (double)vars->p.move_speed;
 	step_lr = (double)vars->p.lr_direction * (double)vars->p.move_speed;

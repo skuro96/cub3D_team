@@ -98,8 +98,9 @@ void	ft_strlcpy(char *dest, char *src, size_t size)
 	{
 		while (--i != 0)
 		{
-			if ((*pdst++ = *psrc++) == '\0')
+			if (*psrc == '\0')
 				break ;
+			*pdst++ = *psrc++;
 		}
 	}
 	if (i == 0)

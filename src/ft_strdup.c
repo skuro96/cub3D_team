@@ -6,7 +6,8 @@ char	*ft_strdup(const char *src)
 	int		i;
 
 	i = 0;
-	if ((dest = malloc(sizeof(char) * (ft_strlen(src) + 1))) == NULL)
+	dest = malloc(sizeof(char) * (ft_strlen(src) + 1));
+	if (dest == NULL)
 		return (NULL);
 	while (src[i] != '\0')
 	{
