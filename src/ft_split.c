@@ -41,7 +41,7 @@ static char	**all_free(char **dest, t_size size)
 	int	i;
 
 	i = 0;
-	while (i < size.str_nbr)
+	while (i < (int)size.str_nbr)
 	{
 		free(dest[i]);
 		i++;
