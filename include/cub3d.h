@@ -45,9 +45,11 @@ typedef struct	s_mapinfo
 	int f_color;
 	int c_color;
 	int sprite;
-
 	int player_x;
 	int player_y;
+	int i;
+	int j;
+	int fd;
 	double player_angle;
 	int **went;
 	char **map_prtd;
@@ -140,6 +142,7 @@ typedef struct	s_vars
 {
 	void *mlx;
 	void *win;
+	bool	save_flag;
 	t_sprite *sprites;
 	t_tmp tmp;
 	t_texture tex;
@@ -180,6 +183,7 @@ void render_all_rays(t_vars *vars);
 void process_sprite(t_vars *vars);
 double distance(double x1, double y1, double x2, double y2);
 int win_destroy(t_vars *vars);
+void	make_bmp(t_vars *vars);
 
 
 #endif

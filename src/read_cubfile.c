@@ -225,29 +225,39 @@ float	to_degree(char c)
 	return (-1);
 }
 
+bool	check_map_elements(t_mapinfo *mi, int i, int j)
+{
+	if (!ft_strchr(" 012NSWE", mi->map[i][j]))
+		return (false);
+	if (mi->player_x != -1 && mi->player_y != -1 && \
+	ft_strchr("NSWE", mi->map[i][j]))
+		return (false);
+	if (ft_strchr("NSWE", mi->map[i][j]))
+	{
+		mi->player_y = i;
+		mi->player_x = j;
+		mi->player_angle = to_degree(mi->map[i][j]);
+		mi->map[i][j] = '0';
+	}
+	return (true);
+}
+
 bool	check_map(t_mapinfo *mi, int n)
 {
 	int	i;
 	int	j;
+	bool flag;
 
+	flag = false;
 	i = 0;
 	while (i < n)
 	{
 		j = 0;
 		while (mi->map[i][j] != '\0')
 		{
-			if (!ft_strchr(" 012NSWE", mi->map[i][j]))
-				return (false);
-			if (mi->player_x != -1 && mi->player_y != -1 && \
-			ft_strchr("NSWE", mi->map[i][j]))
-				return (false);
-			if (ft_strchr("NSWE", mi->map[i][j]))
-			{
-				mi->player_y = i;
-				mi->player_x = j;
-				mi->player_angle = to_degree(mi->map[i][j]);
-				mi->map[i][j] = '0';
-			}
+			flag = check_map_elements(mi, i, j);
+			if (flag == false)
+				return (flag);
 			j++;
 		}
 		i++;
@@ -255,39 +265,54 @@ bool	check_map(t_mapinfo *mi, int n)
 	return (mi->player_angle != -1);
 }
 
+void	in_prtd(char **pro_map, char **map, t_mapinfo *mi)
+{
+	if (mi->i == 0 || mi->i == mi->map_row + 1 || \
+	 mi->j == 0 || mi->j == mi->map_col + 1)
+		pro_map[mi->i][mi->j] = '#';
+	else
+	{
+		pro_map[mi->i][mi->j] = map[mi->i - 1][mi->j - 1];
+		if (mi->j > (int)ft_strlen(map[mi->i - 1]))
+			pro_map[mi->i][mi->j] = ' ';
+	}
+}
+
+bool	create_promap(t_mapinfo *mi, char **pro_map, char **map)
+{
+	mi->i = 0;
+	while (mi->i < mi->map_row + 2)
+	{
+		mi->j = 0;
+		pro_map[mi->i] = malloc(mi->map_col + 2 + 1);
+		if (!pro_map[mi->i])
+			return (false); // free
+		while (mi->j < mi->map_col + 2)
+		{
+			in_prtd(pro_map, map, mi);
+			mi->j++;
+		}
+		pro_map[mi->i][mi->j] = '\0';
+		mi->i++;
+	}
+	pro_map[mi->i] = NULL;
+	return (true);
+}
+
 bool	protect_map(char **map, t_mapinfo *mi)
 {
-	int		i;
-	int		j;
 	char	**pro_map;
+	bool	flag;
 
-	i = 0;
+	flag = false;
 	pro_map = malloc(sizeof(char *) * (mi->map_row + 2 + 1));
 	if (!pro_map)
 		return (false);
-	while (i < mi->map_row + 2)
-	{
-		j = 0;
-		pro_map[i] = malloc(mi->map_col + 2 + 1);
-		if (!pro_map[i])
-			return (false); // free
-		while (j < mi->map_col + 2)
-		{
-			if (i == 0 || i == mi->map_row + 1 || j == 0 || j == mi->map_col + 1)
-				pro_map[i][j] = '#';
-			else
-			{
-				pro_map[i][j] = map[i - 1][j - 1];
-				if (j > (int)ft_strlen(map[i - 1]))
-					pro_map[i][j] = ' ';
-			}
-			j++;
-		}
-		pro_map[i][j] = '\0';
-		i++;
-	}
-	pro_map[i] = NULL;
+	flag = create_promap(mi, pro_map, map);
+	if (flag == false)
+		return (flag);
 	mi->map_prtd = pro_map;
+	free(pro_map);
 	return (true);
 }
 
@@ -335,69 +360,76 @@ bool	check_info(t_mapinfo *mi)
 	return (true);
 }
 
+bool	in_data(bool map_read, t_mapinfo *mi, char *line, char **buf)
+{
+	if (!buf[0] && !map_read)
+		;
+	else if (is_index(buf[0]))
+	{
+		if (!(set_resolution(line, mi) || set_path(line, mi) || \
+		set_rgb(line, mi)))
+		{
+			close(mi->fd);
+			free(line);
+			return (freeturn_buf(buf, false));
+		}
+	}
+	else
+	{
+		map_read = true;
+		set_map(line, mi); // 失敗の場合のfree
+	}
+	return (true);
+}
+
+void	free_line(t_mapinfo *mi, int ret, char *line)
+{
+	if (ret == 0)
+	{
+		set_map(line, mi);
+		free(line);
+	}
+}
+
 bool	set_info(char *fname, t_mapinfo *mi)
 {
-	int		fd;
 	char	*line;
 	char	**buf;
 	bool	map_read;
 	int		ret;
 
 	map_read = false;
-	fd = open(fname, O_RDONLY);
-	ret = get_next_line(fd, &line);
+	mi->fd = open(fname, O_RDONLY);
+	ret = get_next_line(mi->fd, &line);
 	while (ret > 0)
 	{
 		buf = ft_split(line, ' ');
 		if (!buf)
 			return (false);
-		if (!buf[0] && !map_read)
-			;
-		else if (is_index(buf[0]))
-		{
-			if (!(set_resolution(line, mi) || set_path(line, mi) || \
-			set_rgb(line, mi)))
-			{
-				close(fd);
-				free(line);
-				return (freeturn_buf(buf, false));
-			}
-		}
-		else
-		{
-			map_read = true;
-			set_map(line, mi); // 失敗の場合のfree
-		}
+		if (!(in_data(map_read, mi, line, buf)))
+			return (false);
 		free(line);
 		freeturn_buf(buf, true);
-		ret = get_next_line(fd, &line);
+		ret = get_next_line(mi->fd, &line);
 	}
-	if (ret == 0)
-	{
-		set_map(line, mi);
-		free(line);
-	}
-	close(fd);
+	free_line(mi, ret, line);
+	close(mi->fd);
 	return (check_info(mi));
 }
 
 // int main(int argc, char **argv)
 // {
 // 	char *line;
-// 	t_mapinfo mi;
 
+// 	t_mapinfo mi;
 // 	if (argc < 2)
 // 		return (0);
-
 // 	int fd = open(argv[1], O_RDONLY);
-
 // 	map_init(&mi);
 // 	if (!set_info(argv[1], &mi))
 // 		return (0);
-
 // 	printf("map_row = %d\n", mi.map_row);
 // 	printf("map_col = %d\n", mi.map_col);
-
 // 	if (protect_map(mi.map, &mi))
 // 	{
 // 		for (int i = 0; i < mi.map_row + 2; i++)
@@ -405,7 +437,6 @@ bool	set_info(char *fname, t_mapinfo *mi)
 // 			printf("%s\n", mi.map_prtd[i]);
 // 		}
 // 	}
-	
 // 	printf("check = %d\n",search_map(&mi, mi.player_x + 1, mi.player_y + 1));
 // 	printf("%s\n%s\n%s\n%s\n%s\n", mi.north_texture, mi.south_texture, mi.east_texture, mi.west_texture, mi.sprite_texture);
 // 	printf("%d\n", mi.map_col);
@@ -414,22 +445,18 @@ bool	set_info(char *fname, t_mapinfo *mi)
 // 		printf("%s\n", mi.map[i]);
 // 		free(mi.map[i]);
 // 	}
-
 // 	printf("F:%d, C:%d\n", mi.f_color, mi.c_color);
 // 	free(mi.map);
-
 // 	free(mi.north_texture);
 // 	free(mi.south_texture);
 // 	free(mi.east_texture);
 // 	free(mi.west_texture);
-
 // 	for (int i = 0; i < mi.map_row + 2; i++)
 // 	{
 // 		printf("%s\n", mi.map_prtd[i]);
 // 		free(mi.map_prtd[i]);
 // 	}
 // 	free(mi.map_prtd);
-
 // 	// system("leaks a.out");
 // 	return (0);
 // }

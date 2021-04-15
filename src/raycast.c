@@ -32,10 +32,12 @@ void	init_tmp(t_vars *vars)
 
 void calc_horz(t_vars *vars, t_player p)
 {
-	vars->tmp.y_intercept = ((int)p.y / TILE_SIZE) * TILE_SIZE +\
-	(vars->tmp.is_facing_down ? TILE_SIZE : 0);
+	vars->tmp.y_intercept = ((int)p.y / TILE_SIZE) * TILE_SIZE;
+	if (vars->tmp.is_facing_down)
+		vars->tmp.y_intercept += TILE_SIZE;
 	vars->tmp.x_intercept = p.x + (vars->tmp.y_intercept - p.y) / \
 	tan(vars->tmp.ray_angle);
+	vars->tmp.y_step = TILE_SIZE;
 	if (vars->tmp.is_facing_up)
 		vars->tmp.y_step = TILE_SIZE * -1;
 	vars->tmp.x_step = TILE_SIZE / tan(vars->tmp.ray_angle);
@@ -47,10 +49,14 @@ void calc_horz(t_vars *vars, t_player p)
 
 void	calc_vert(t_vars *vars, t_player p)
 {
-	vars->tmp.x_intercept = ((int)p.x / TILE_SIZE) * TILE_SIZE +\
-	(vars->tmp.is_facing_right ? TILE_SIZE : 0);
+
+
+	vars->tmp.x_intercept = ((int)p.x / TILE_SIZE) * TILE_SIZE;
+	if (vars->tmp.is_facing_right)
+		vars->tmp.x_intercept += TILE_SIZE;
 	vars->tmp.y_intercept = p.y + (vars->tmp.x_intercept - p.x) * \
 		tan(vars->tmp.ray_angle);
+	vars->tmp.x_step = TILE_SIZE;
 	if (vars->tmp.is_facing_left)
 		vars->tmp.x_step = TILE_SIZE * -1;
 	vars->tmp.y_step = TILE_SIZE * tan(vars->tmp.ray_angle);
@@ -72,25 +78,25 @@ void	calc_step(t_vars *vars, t_player p, int horz)
 	}
 }
 
-void	tmp_vert_step(t_vars *vars, t_tmp_step step)
+void	tmp_vert_step(t_vars *vars, t_tmp_step *step)
 {
-	while (is_inside_map(vars, step.next_vert_x, step.next_vert_y))
+	while (is_inside_map(vars, step->next_vert_x, step->next_vert_y))
 	{
-		step.x_to_check = step.next_vert_x;
+		step->x_to_check = step->next_vert_x;
 		if (vars->tmp.is_facing_left)
-			step.x_to_check = step.next_vert_x - 1;
-		step.y_to_check = step.next_vert_y;
-		if (has_wall(*vars, step.x_to_check, step.y_to_check))
+			step->x_to_check = step->next_vert_x - 1;
+		step->y_to_check = step->next_vert_y;
+		if (has_wall(*vars, step->x_to_check, step->y_to_check))
 		{
-			vars->tmp.vert_x = step.next_vert_x;
-			vars->tmp.vert_y = step.next_vert_y;
+			vars->tmp.vert_x = step->next_vert_x;
+			vars->tmp.vert_y = step->next_vert_y;
 			vars->tmp.hit_vert = true;
 			break ;
 		}
 		else
 		{
-			step.next_vert_x += vars->tmp.x_step;
-			step.next_vert_y += vars->tmp.y_step;
+			step->next_vert_x += vars->tmp.x_step;
+			step->next_vert_y += vars->tmp.y_step;
 		}
 	}
 }
@@ -102,7 +108,7 @@ void	vert_ray_part(t_vars *vars, t_player p)
 	calc_step(vars, p, 0);
 	step.next_vert_x = vars->tmp.x_intercept;
 	step.next_vert_y = vars->tmp.y_intercept;
-	tmp_vert_step(vars, step);
+	tmp_vert_step(vars, &step);
 }
 
 void	step_by_step_rayhorz(t_vars *vars)
@@ -216,20 +222,20 @@ int	wall_direction(t_vars *vars, t_ray ray)
 	else if (ray.face_up && ray.hit_vertical)
 	{
 		if (vars->p.x > ray.wall_hit_x)
-			return (1);
+			return (3);
 		else
 			return (2);
 	}
 	else if (ray.face_down && !ray.hit_vertical)
 	{
-		return (3);
+		return (1);
 	}
 	else if (ray.face_down && ray.hit_vertical)
 	{
 		if (vars->p.x < ray.wall_hit_x)
 			return (2);
 		else
-			return (1);
+			return (3);
 	}
 	printf("error\n");
 	return (-1);
@@ -401,6 +407,21 @@ int	main(int argc, char **argv)
 
 	if (argc < 2)
 		return (0);
+	if (argc == 3)
+	{
+	 	if (ft_strcmp(argv[2], "--save") == 0)
+			vars.save_flag = true;
+		else
+		{
+			printf("\x1b[41mWrong option spelling --save\x1b[m\n");
+			exit(1);
+		}
+	}
+	else if(argc != 2)
+	{
+		printf("\x1b[41mWrong argument\x1b[m\n");
+		exit (1);
+	}
 	vars.p.move_speed = 0.5;
 	vars.p.rotation_speed = 1 * M_PI / 180;
 	vars.p.turn_direction = 0;
@@ -444,6 +465,7 @@ int	main(int argc, char **argv)
 	mlx_hook(vars.win, 2, 1L<<0, &key_pressed, &vars);
 	mlx_hook(vars.win, 3, 1L<<1, &key_released, &vars);
 	mlx_hook(vars.win, 17, 1L<<17, &win_destroy, &vars);
+	mlx_hook(vars.win, 33, 1L<<17, &win_destroy, &vars);
 	mlx_loop_hook(vars.mlx, render, &vars);
 	mlx_loop(vars.mlx);
 }

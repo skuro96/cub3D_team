@@ -124,11 +124,8 @@ void	redraw(t_vars *vars)
 	process_sprite(vars);
 	draw_map(&vars->img, vars->mi);
 	draw_player(&vars->img, vars->p);
-	// for(int i = 0; i < 2; i++)
-	// {
-	// 	printf("x%d = %f\n", i, vars->sprite[i].x);
-	// 	printf("y%d = %f\n", i, vars->sprite[i].y);
-	// }
+	if (vars->save_flag)
+		make_bmp(vars);
 	mlx_put_image_to_window(vars->mlx, vars->win, vars->img.img, 0, 0);
 }
 
@@ -141,7 +138,8 @@ bool	has_wall(t_vars vars, int x, int y)
 	map_y = y / TILE_SIZE;
 	if ((x < 0 || vars.mi.win_width < x) || (y < 0 || vars.mi.win_height < y))
 		return (true);
-	return (vars.mi.map[map_y][map_x] == '1' || vars.mi.map[map_y][map_x] == ' ');
+	return (vars.mi.map[map_y][map_x] == '1' || \
+	 vars.mi.map[map_y][map_x] == ' ');
 }
 
 // ubuntu
